@@ -5,6 +5,7 @@ export default function Create({ brands }: any) {
     const { data, setData, post, processing, errors } = useForm({
         po_number: '',
         xfd_date: '',
+        start_date: '', // <-- Tambahan Tanggal Mulai
         brand_id: '',
         art_color: '',
         image: null as File | null,
@@ -50,6 +51,7 @@ export default function Create({ brands }: any) {
             ...detail,
             qty: detail.qty === '' ? 0 : Number(detail.qty)
         }));
+
         setData('details', cleanedDetails);
 
         post('/produksi/spks', {
@@ -87,6 +89,12 @@ export default function Create({ brands }: any) {
                                 <input type="date" value={data.xfd_date} onChange={e => setData('xfd_date', e.target.value)} className={`w-full border p-2 rounded ${errors.xfd_date ? 'border-red-500' : ''}`} />
                                 {errors.xfd_date && <p className="text-red-500 text-sm mt-1">{errors.xfd_date}</p>}
                             </div>
+                            {/* INPUT TANGGAL MULAI */}
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Tanggal Mulai Produksi</label>
+                                <input type="date" value={data.start_date} onChange={e => setData('start_date', e.target.value)} className="w-full border p-2 rounded" />
+                                <p className="text-xs text-gray-500 mt-1">Kosongkan jika akan dipecah menjadi batch.</p>
+                            </div>
                             <div>
                                 <label className="block text-sm font-medium mb-1">Brand <span className="text-red-500">*</span></label>
                                 <select value={data.brand_id} onChange={handleBrandChange} className={`w-full border p-2 rounded ${errors.brand_id ? 'border-red-500' : ''}`}>
@@ -103,7 +111,6 @@ export default function Create({ brands }: any) {
                                 {errors.art_color && <p className="text-red-500 text-sm mt-1">{errors.art_color}</p>}
                             </div>
 
-                            {/* INPUT GAMBAR */}
                             <div className="col-span-2">
                                 <label className="block text-sm font-medium mb-1">Gambar Referensi (Opsional)</label>
                                 <input

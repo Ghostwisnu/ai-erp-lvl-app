@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "bfbdab13da450368e497771094938bcf",
+    "content-hash": "77259643635922a0cf17ca92e64a5f8d",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -9092,6 +9092,64 @@
                 "source": "https://github.com/zakipharaon/laravel-working-calendar/tree/v1.0.1"
             },
             "time": "2026-07-25T09:41:11+00:00"
+        },
+        {
+            "name": "zerofyi/shipit",
+            "version": "v2.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/zerofyi/shipit.git",
+                "reference": "2af50fa3c0b9c65a8a0048e635aaef26e8f17978"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/zerofyi/shipit/zipball/2af50fa3c0b9c65a8a0048e635aaef26e8f17978",
+                "reference": "2af50fa3c0b9c65a8a0048e635aaef26e8f17978",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/console": "^10.0|^11.0|^12.0|^13.0",
+                "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
+                "php": "^8.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Zerofyi\\ShipIt\\ShipItServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Zerofyi\\ShipIt\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nahid Hassan",
+                    "email": "nahid@zerofyi.in",
+                    "homepage": "https://github.com/zerofyi",
+                    "role": "Creator"
+                }
+            ],
+            "description": "A zero-dependency dual-protocol deployment wizard for Hostinger shared hosting.",
+            "keywords": [
+                "deployment",
+                "git",
+                "hostinger",
+                "laravel",
+                "ssh"
+            ],
+            "support": {
+                "issues": "https://github.com/zerofyi/shipit/issues",
+                "source": "https://github.com/zerofyi/shipit/tree/v2.0.2"
+            },
+            "time": "2026-10-01T08:01:59+00:00"
         }
     ],
     "packages-dev": [

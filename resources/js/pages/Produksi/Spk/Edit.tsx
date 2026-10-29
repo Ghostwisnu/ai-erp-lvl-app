@@ -11,6 +11,7 @@ export default function Edit({ spk, brands }: any) {
     const { data, setData, put, processing, errors } = useForm({
         po_number: spk.po_number,
         xfd_date: spk.xfd_date,
+        start_date: spk.start_date || '', // <-- Tambahan Tanggal Mulai
         brand_id: spk.brand_id,
         art_color: spk.art_color,
         image: null as File | null,
@@ -96,6 +97,14 @@ export default function Edit({ spk, brands }: any) {
                                 <input type="date" value={data.xfd_date} onChange={e => setData('xfd_date', e.target.value)} className={`w-full border p-2 rounded ${errors.xfd_date ? 'border-red-500' : ''}`} />
                                 {errors.xfd_date && <p className="text-red-500 text-sm mt-1">{errors.xfd_date}</p>}
                             </div>
+
+                            {/* INPUT TANGGAL MULAI */}
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Tanggal Mulai Produksi</label>
+                                <input type="date" value={data.start_date} onChange={e => setData('start_date', e.target.value)} className="w-full border p-2 rounded" />
+                                <p className="text-xs text-gray-500 mt-1">Kosongkan jika akan dipecah menjadi batch.</p>
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-medium mb-1">Brand <span className="text-red-500">*</span></label>
                                 <select value={data.brand_id} onChange={handleBrandChange} className={`w-full border p-2 rounded ${errors.brand_id ? 'border-red-500' : ''}`}>

@@ -28,4 +28,13 @@ class Spk extends Model
     {
         return $this->hasManyThrough(ProductionScan::class, SpkDetail::class);
     }
+
+    public function batches()
+    {
+        return $this->hasMany(SpkBatch::class);
+    }
+    public function dailies()
+    {
+        return $this->hasMany(ProductionDaily::class);
+    }
 }

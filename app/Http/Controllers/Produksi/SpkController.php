@@ -36,6 +36,7 @@ class SpkController extends BaseAdminController
             'details.*.size_name' => 'required|string',
             'details.*.qty' => 'required|integer|min:0',
             'details.*.barcode' => 'nullable|string|max:255',
+            'start_date' => 'nullable|date',
         ]);
 
         DB::transaction(function () use ($validated, $request) {
@@ -49,6 +50,7 @@ class SpkController extends BaseAdminController
                 'xfd_date' => $validated['xfd_date'],
                 'brand_id' => $validated['brand_id'],
                 'art_color' => $validated['art_color'],
+                'start_date' => $validated['start_date'],
                 'image_path' => $imagePath,
                 'status' => 'create', // Pastikan default status create
             ]);
@@ -93,6 +95,7 @@ class SpkController extends BaseAdminController
             'details.*.size_name' => 'required|string',
             'details.*.qty' => 'required|integer|min:0',
             'details.*.barcode' => 'nullable|string|max:255',
+            'start_date' => 'nullable|date',
         ]);
 
         DB::transaction(function () use ($validated, $spk, $request) {
@@ -110,6 +113,7 @@ class SpkController extends BaseAdminController
                 'xfd_date' => $validated['xfd_date'],
                 'brand_id' => $validated['brand_id'],
                 'art_color' => $validated['art_color'],
+                'start_date' => $validated['start_date'],
                 'image_path' => $imagePath,
             ]);
 

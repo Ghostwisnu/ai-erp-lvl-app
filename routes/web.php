@@ -19,6 +19,7 @@ use App\Http\Controllers\Produksi\ScanController;
 use App\Http\Controllers\Produksi\DefectController;
 use App\Http\Controllers\Produksi\ReportQcController;
 use App\Http\Controllers\Produksi\MonitorQcController;
+use App\Http\Controllers\Produksi\SpkBatchController;
 use App\Http\Controllers\Admin\SettingFingerController;
 use App\Http\Controllers\Admin\RekapAbsensiController;
 
@@ -75,6 +76,15 @@ Route::middleware(['auth'])->prefix('produksi')->name('produksi.')->group(functi
     Route::resource('spks', SpkController::class)->middleware('permission:manage-spk');
     Route::get('/spks/{spk}/print-barcode', [SpkController::class, 'printBarcode'])->name('spks.print-barcode')->middleware('permission:manage-spk');
     Route::post('/spks/{spk}/status', [SpkController::class, 'updateStatus'])->name('spks.update-status')->middleware('permission:manage-spk');
+
+    Route::post('/daily-output', [SpkBatchController::class, 'storeDaily'])->name('daily-output.store')->middleware('permission:manage-spk');
+    Route::delete('/daily-output/{daily}', [SpkBatchController::class, 'destroyDaily'])->name('daily-output.destroy')->middleware('permission:manage-spk');
+    // --- ROUTE BATCH PRODUKSI ---
+    Route::get('/spks/{spk}/batches', [SpkBatchController::class, 'index'])->name('spk-batches.index')->middleware('permission:manage-spk');
+    Route::post('/spks/{spk}/batches/split', [SpkBatchController::class, 'split'])->name('spk-batches.split')->middleware('permission:manage-spk');
+    Route::post('/spks/{spk}/batches/merge', [SpkBatchController::class, 'merge'])->name('spk-batches.merge')->middleware('permission:manage-spk');
+    Route::post('/batches/{batch}/track', [SpkBatchController::class, 'updateTrack'])->name('spk-batches.update-track')->middleware('permission:manage-spk');
+    Route::get('/spk-schedules', [SpkBatchController::class, 'schedule'])->name('spk-schedules.index')->middleware('permission:manage-spk');
 
     Route::get('/scan', [ScanController::class, 'index'])->name('scan.index')->middleware('permission:manage-scan');
     Route::get('/scan/{department}', [ScanController::class, 'scan'])->name('scan.board')->middleware('permission:manage-scan');

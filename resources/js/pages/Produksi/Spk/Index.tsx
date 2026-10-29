@@ -49,9 +49,9 @@ export default function Index({ spks }: any) {
                                                 }
                                             }}
                                             className={`border p-1 rounded text-xs font-bold ${spk.status === 'active' ? 'text-green-600 border-green-600 bg-green-50' :
-                                                    spk.status === 'finished' ? 'text-blue-600 border-blue-600 bg-blue-50' :
-                                                        spk.status === 'closed' ? 'text-gray-600 border-gray-600 bg-gray-100' :
-                                                            'text-yellow-600 border-yellow-600 bg-yellow-50'
+                                                spk.status === 'finished' ? 'text-blue-600 border-blue-600 bg-blue-50' :
+                                                    spk.status === 'closed' ? 'text-gray-600 border-gray-600 bg-gray-100' :
+                                                        'text-yellow-600 border-yellow-600 bg-yellow-50'
                                                 }`}
                                         >
                                             <option value="create">CREATE</option>
@@ -61,6 +61,7 @@ export default function Index({ spks }: any) {
                                         </select>
                                     </td>
                                     <td className="p-2 space-x-3 text-sm">
+                                        <Link href={`/produksi/spks/${spk.id}/batches`} className="text-purple-600 hover:underline font-medium">Batch</Link>
                                         <Link href={`/produksi/spks/${spk.id}`} className="text-gray-600 hover:underline">Lihat</Link>
                                         <Link href={`/produksi/spks/${spk.id}/edit`} className="text-blue-600 hover:underline">Edit</Link>
                                         <Link href={`/produksi/spks/${spk.id}/print-barcode`} className="text-green-600 hover:underline font-medium">Print Barcode</Link>

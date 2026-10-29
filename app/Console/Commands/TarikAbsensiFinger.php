@@ -28,26 +28,29 @@ class TarikAbsensiFinger extends Command
             $this->info("Mencoba terhubung ke mesin: {$ip}");
 
             try {
-                // 1. Inisialisasi device
-                $device = ZkDevice::make($ip, timezone: 'Asia/Jakarta');
+                // Kembali ke TCP (karena tes koneksi awal sukses), timeout diperbesar
+                $device = ZkDevice::make(
+                    $ip,
+                    commKey: 0,
+                    transport: 'tcp',     // Coba TCP dulu
+                    timezone: 'Asia/Jakarta',
+                    timeout: 30           // Perbesar timeout
+                );
 
-                // 2. Ambil data absensi hari ini dari mesin
+                // Ambil data 2 hari terakhir saja untuk testing (kurangi beban)
                 $punches = $device->session(function ($d) {
-                    return $d->attendance()->since(today());
+                    return $d->attendance()->since('-2 days');
                 });
 
                 $count = 0;
                 foreach ($punches as $punch) {
-
-                    // 3. SIMPAN KE TABEL RIWAYAT MENTAH (finger_logs)
+                    // ... (logika penyimpanan Anda tetap sama)
                     FingerLog::firstOrCreate([
                         'pin' => $punch->userId,
                         'scan_time' => Carbon::parse($punch->timestamp),
                     ]);
 
-                    // 4. REKAP KE TABEL ATTENDANCES
                     $employee = Employee::where('employee_code', $punch->userId)->first();
-
                     if ($employee) {
                         $timestamp = Carbon::parse($punch->timestamp);
                         $date = $timestamp->toDateString();
@@ -58,13 +61,11 @@ class TarikAbsensiFinger extends Command
                             'date' => $date,
                         ]);
 
-                        // Logika: Scan pertama = Check In, Scan berikutnya = Check Out
                         if (!$attendance->check_in) {
                             $attendance->check_in = $time;
                         } else {
                             $attendance->check_out = $time;
                         }
-
                         $attendance->status = 'present';
                         $attendance->save();
                         $count++;
@@ -73,7 +74,6 @@ class TarikAbsensiFinger extends Command
 
                 $this->info("Mesin {$ip}: Berhasil memproses {$count} data absensi.");
             } catch (\Exception $e) {
-                // Jika satu mesin gagal, lanjut ke mesin berikutnya
                 $this->error("Mesin {$ip}: Gagal ditarik. Error: " . $e->getMessage());
             }
         }

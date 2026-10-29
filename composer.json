@@ -21,7 +21,8 @@
         "maatwebsite/excel": "^4.0",
         "spatie/laravel-permission": "^8.3",
         "tightenco/ziggy": "^2.6",
-        "zaki/laravel-working-calendar": "^1.0"
+        "zaki/laravel-working-calendar": "^1.0",
+        "zerofyi/shipit": "^2.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",
