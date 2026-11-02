@@ -16,6 +16,8 @@ class PermissionSeeder extends Seeder
             'manage-menus',
             'manage-submenus',
             'view-profile',
+            'manage-assets',
+            'manage-payroll',
         ];
 
         foreach ($permissions as $permission) {

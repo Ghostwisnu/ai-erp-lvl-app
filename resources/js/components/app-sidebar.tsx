@@ -1,5 +1,15 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ChevronRight } from 'lucide-react';
+import {
+    Banknote,
+    ChevronRight,
+    List,
+    Menu as MenuIcon,
+    Package,
+    Shield,
+    UserRound,
+    Users,
+    type LucideIcon,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -8,10 +18,29 @@ import {
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import {
-    Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel,
-    SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
-    SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem,
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarGroup,
+    SidebarGroupLabel,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarMenuSub,
+    SidebarMenuSubButton,
+    SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
+
+const menuIcons: Record<string, LucideIcon> = {
+    banknote: Banknote,
+    list: List,
+    menu: MenuIcon,
+    package: Package,
+    shield: Shield,
+    user: UserRound,
+    users: Users,
+};
 
 export function AppSidebar() {
     const page = usePage<any>();
@@ -37,12 +66,20 @@ export function AppSidebar() {
                     <SidebarGroupLabel>Aplikasi</SidebarGroupLabel>
                     <SidebarMenu>
                         {menus.map((menu: any) => {
+                            const Icon = menuIcons[menu.icon];
+
                             // Jika menu tidak punya sub_menus, render sebagai link biasa
-                            if (!menu.sub_menus || menu.sub_menus.length === 0) {
+                            if (
+                                !menu.sub_menus ||
+                                menu.sub_menus.length === 0
+                            ) {
                                 return (
                                     <SidebarMenuItem key={menu.id}>
                                         <SidebarMenuButton asChild>
                                             <Link href={menu.route || '#'}>
+                                                {Icon && (
+                                                    <Icon aria-hidden="true" />
+                                                )}
                                                 <span>{menu.name}</span>
                                             </Link>
                                         </SidebarMenuButton>
@@ -60,22 +97,42 @@ export function AppSidebar() {
                                 >
                                     <SidebarMenuItem>
                                         <CollapsibleTrigger asChild>
-                                            <SidebarMenuButton tooltip={menu.name}>
+                                            <SidebarMenuButton
+                                                tooltip={menu.name}
+                                            >
+                                                {Icon && (
+                                                    <Icon aria-hidden="true" />
+                                                )}
                                                 <span>{menu.name}</span>
                                                 <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                                             </SidebarMenuButton>
                                         </CollapsibleTrigger>
                                         <CollapsibleContent>
                                             <SidebarMenuSub>
-                                                {menu.sub_menus.map((sub: any) => (
-                                                    <SidebarMenuSubItem key={sub.id}>
-                                                        <SidebarMenuSubButton asChild>
-                                                            <Link href={sub.route || '#'}>
-                                                                <span>{sub.name}</span>
-                                                            </Link>
-                                                        </SidebarMenuSubButton>
-                                                    </SidebarMenuSubItem>
-                                                ))}
+                                                {menu.sub_menus.map(
+                                                    (sub: any) => (
+                                                        <SidebarMenuSubItem
+                                                            key={sub.id}
+                                                        >
+                                                            <SidebarMenuSubButton
+                                                                asChild
+                                                            >
+                                                                <Link
+                                                                    href={
+                                                                        sub.route ||
+                                                                        '#'
+                                                                    }
+                                                                >
+                                                                    <span>
+                                                                        {
+                                                                            sub.name
+                                                                        }
+                                                                    </span>
+                                                                </Link>
+                                                            </SidebarMenuSubButton>
+                                                        </SidebarMenuSubItem>
+                                                    ),
+                                                )}
                                             </SidebarMenuSub>
                                         </CollapsibleContent>
                                     </SidebarMenuItem>
@@ -86,9 +143,7 @@ export function AppSidebar() {
                 </SidebarGroup>
             </SidebarContent>
 
-            <SidebarFooter>
-                {auth?.user && <NavUser />}
-            </SidebarFooter>
+            <SidebarFooter>{auth?.user && <NavUser />}</SidebarFooter>
         </Sidebar>
     );
 }

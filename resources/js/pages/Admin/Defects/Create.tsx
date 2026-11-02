@@ -14,29 +14,75 @@ export default function Create({ brands }: any) {
 
     return (
         <>
-            <Head title="Tambah Defect" />
-            <div className="py-8 max-w-3xl mx-auto sm:px-6 lg:px-8">
-                <div className="bg-white shadow-sm sm:rounded-lg p-6">
-                    <h2 className="font-semibold text-xl mb-6">Tambah Kategori Defect</h2>
+            <Head title="Tambah Kategori Cacat" />
+            <div className="mx-auto max-w-3xl py-8 sm:px-6 lg:px-8">
+                <div className="bg-white p-6 shadow-sm sm:rounded-lg">
+                    <h2 className="mb-6 text-xl font-semibold">
+                        Tambah Kategori Cacat
+                    </h2>
                     <form onSubmit={submit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1">Brand</label>
-                            <select value={data.brand_id} onChange={e => setData('brand_id', e.target.value)} className="w-full border p-2 rounded" required>
-                                <option value="">-- Pilih Brand --</option>
-                                {brands.map((b: any) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                            <label className="mb-1 block text-sm font-medium">
+                                Merek
+                            </label>
+                            <select
+                                value={data.brand_id}
+                                onChange={(e) =>
+                                    setData('brand_id', e.target.value)
+                                }
+                                className="w-full rounded border p-2"
+                                required
+                            >
+                                <option value="">-- Pilih Merek --</option>
+                                {brands.map((b: any) => (
+                                    <option key={b.id} value={b.id}>
+                                        {b.name}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Nama Defect</label>
-                            <input type="text" value={data.name} onChange={e => setData('name', e.target.value)} className="w-full border p-2 rounded" placeholder="Contoh: Jahitan Lepas" required />
+                            <label className="mb-1 block text-sm font-medium">
+                                Nama Cacat
+                            </label>
+                            <input
+                                type="text"
+                                value={data.name}
+                                onChange={(e) =>
+                                    setData('name', e.target.value)
+                                }
+                                className="w-full rounded border p-2"
+                                placeholder="Contoh: Jahitan Lepas"
+                                required
+                            />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Deskripsi</label>
-                            <textarea value={data.description} onChange={e => setData('description', e.target.value)} className="w-full border p-2 rounded" rows={3}></textarea>
+                            <label className="mb-1 block text-sm font-medium">
+                                Deskripsi
+                            </label>
+                            <textarea
+                                value={data.description}
+                                onChange={(e) =>
+                                    setData('description', e.target.value)
+                                }
+                                className="w-full rounded border p-2"
+                                rows={3}
+                            ></textarea>
                         </div>
                         <div className="flex justify-end space-x-2 pt-4">
-                            <Link href="/admin/defect-categories" className="px-4 py-2 bg-gray-200 rounded">Batal</Link>
-                            <button type="submit" disabled={processing} className="px-4 py-2 bg-blue-600 text-white rounded">Simpan</button>
+                            <Link
+                                href="/admin/defect-categories"
+                                className="rounded bg-gray-200 px-4 py-2"
+                            >
+                                Batal
+                            </Link>
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="rounded bg-blue-600 px-4 py-2 text-white"
+                            >
+                                Simpan
+                            </button>
                         </div>
                     </form>
                 </div>

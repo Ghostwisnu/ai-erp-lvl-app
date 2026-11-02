@@ -12,6 +12,7 @@ use Carbon\Carbon;
 class TarikAbsensiFinger extends Command
 {
     protected $signature = 'finger:tarik';
+
     protected $description = 'Menarik data absensi dari beberapa mesin finger Solution';
 
     public function handle()

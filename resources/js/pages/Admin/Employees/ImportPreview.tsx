@@ -11,38 +11,70 @@ export default function ImportPreview({ previewData }: any) {
 
     return (
         <>
-            <Head title="Konfirmasi Import" />
-            <div className="py-8 max-w-5xl mx-auto sm:px-6 lg:px-8">
-                <div className="bg-white shadow-sm sm:rounded-lg p-6">
-                    <div className="flex justify-between items-center mb-6">
+            <Head title="Konfirmasi Impor" />
+            <div className="mx-auto max-w-5xl py-8 sm:px-6 lg:px-8">
+                <div className="bg-white p-6 shadow-sm sm:rounded-lg">
+                    <div className="mb-6 flex items-center justify-between">
                         <div>
-                            <h2 className="font-semibold text-xl">Konfirmasi Import Data</h2>
-                            <p className="text-sm text-gray-500 mt-1">Ditemukan {validCount} data yang siap diimport.</p>
+                            <h2 className="text-xl font-semibold">
+                                Konfirmasi Impor Data
+                            </h2>
+                            <p className="mt-1 text-sm text-gray-500">
+                                Ditemukan {validCount} data yang siap diimport.
+                            </p>
                         </div>
-                        <Link href="/admin/employees/import" className="text-blue-600 text-sm">&larr; Upload Ulang</Link>
+                        <Link
+                            href="/admin/employees/import"
+                            className="text-sm text-blue-600"
+                        >
+                            &larr; Unggah Ulang
+                        </Link>
                     </div>
 
-                    <div className="overflow-x-auto mb-6">
-                        <table className="w-full text-left border-collapse border text-sm">
+                    <div className="mb-6 overflow-x-auto">
+                        <table className="w-full border-collapse border text-left text-sm">
                             <thead>
-                                <tr className="bg-gray-100 border-b">
-                                    <th className="p-2 border-r">Nama</th>
-                                    <th className="p-2 border-r">Email</th>
-                                    <th className="p-2 border-r">NIK</th>
-                                    <th className="p-2 border-r">Departemen</th>
-                                    <th className="p-2 border-r">Role</th>
-                                    <th className="p-2 border-r">Status</th>
+                                <tr className="border-b bg-gray-100">
+                                    <th className="border-r p-2">Nama</th>
+                                    <th className="border-r p-2">
+                                        Kode Karyawan
+                                    </th>
+                                    <th className="border-r p-2">
+                                        Tanggal Bergabung
+                                    </th>
+                                    <th className="border-r p-2">Departemen</th>
+                                    <th className="border-r p-2">Jabatan</th>
+                                    <th className="border-r p-2">Peran</th>
+                                    <th className="border-r p-2">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {previewData.map((row: any, i: number) => (
-                                    <tr key={i} className={`border-b ${!row.is_valid ? 'bg-red-50' : ''}`}>
-                                        <td className="p-2 border-r">{row.name}</td>
-                                        <td className="p-2 border-r">{row.email}</td>
-                                        <td className="p-2 border-r">{row.employee_code}</td>
-                                        <td className="p-2 border-r">{row.department}</td>
-                                        <td className="p-2 border-r capitalize">{row.role}</td>
-                                        <td className={`p-2 border-r font-bold ${row.is_valid ? 'text-green-600' : 'text-red-600'}`}>
+                                    <tr
+                                        key={i}
+                                        className={`border-b ${!row.is_valid ? 'bg-red-50' : ''}`}
+                                    >
+                                        <td className="border-r p-2">
+                                            {row.name}
+                                        </td>
+                                        <td className="border-r p-2">
+                                            {row.employee_code}
+                                        </td>
+                                        <td className="border-r p-2">
+                                            {row.join_date || '-'}
+                                        </td>
+                                        <td className="border-r p-2">
+                                            {row.department}
+                                        </td>
+                                        <td className="border-r p-2">
+                                            {row.position}
+                                        </td>
+                                        <td className="border-r p-2 capitalize">
+                                            {row.role}
+                                        </td>
+                                        <td
+                                            className={`border-r p-2 font-bold ${row.is_valid ? 'text-green-600' : 'text-red-600'}`}
+                                        >
                                             {row.status}
                                         </td>
                                     </tr>
@@ -55,9 +87,11 @@ export default function ImportPreview({ previewData }: any) {
                         <button
                             onClick={handleConfirm}
                             disabled={processing || validCount === 0}
-                            className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-bold disabled:opacity-50"
+                            className="rounded bg-green-600 px-6 py-2 font-bold text-white hover:bg-green-700 disabled:opacity-50"
                         >
-                            {processing ? 'Menyimpan...' : `Konfirmasi & Simpan (${validCount} Data)`}
+                            {processing
+                                ? 'Menyimpan...'
+                                : `Konfirmasi & Simpan (${validCount} Data)`}
                         </button>
                     </div>
                 </div>

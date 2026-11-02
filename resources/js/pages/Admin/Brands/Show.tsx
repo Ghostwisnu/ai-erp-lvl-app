@@ -3,24 +3,46 @@ import { Head, Link } from '@inertiajs/react';
 export default function Show({ brand }: any) {
     return (
         <>
-            <Head title={`Detail Brand: ${brand.name}`} />
-            <div className="py-8 max-w-3xl mx-auto sm:px-6 lg:px-8">
-                <div className="bg-white shadow-sm sm:rounded-lg p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="font-semibold text-xl">Detail Brand</h2>
-                        <Link href="/admin/brands" className="text-blue-600">&larr; Kembali</Link>
+            <Head title={`Detail Merek: ${brand.name}`} />
+            <div className="mx-auto max-w-3xl py-8 sm:px-6 lg:px-8">
+                <div className="bg-white p-6 shadow-sm sm:rounded-lg">
+                    <div className="mb-6 flex items-center justify-between">
+                        <h2 className="text-xl font-semibold">Detail Merek</h2>
+                        <Link href="/admin/brands" className="text-blue-600">
+                            &larr; Kembali
+                        </Link>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-8 bg-gray-50 p-4 rounded">
-                        <div><span className="text-gray-500 text-sm block">Kode Brand</span> <span className="font-medium">{brand.code}</span></div>
-                        <div><span className="text-gray-500 text-sm block">Nama Brand</span> <span className="font-medium">{brand.name}</span></div>
-                        <div className="col-span-2"><span className="text-gray-500 text-sm block">Deskripsi</span> <span className="font-medium">{brand.description || '-'}</span></div>
+                    <div className="mb-8 grid grid-cols-2 gap-4 rounded bg-gray-50 p-4">
+                        <div>
+                            <span className="block text-sm text-gray-500">
+                                Kode Merek
+                            </span>{' '}
+                            <span className="font-medium">{brand.code}</span>
+                        </div>
+                        <div>
+                            <span className="block text-sm text-gray-500">
+                                Nama Merek
+                            </span>{' '}
+                            <span className="font-medium">{brand.name}</span>
+                        </div>
+                        <div className="col-span-2">
+                            <span className="block text-sm text-gray-500">
+                                Deskripsi
+                            </span>{' '}
+                            <span className="font-medium">
+                                {brand.description || '-'}
+                            </span>
+                        </div>
                     </div>
 
-                    <h3 className="font-medium text-lg mb-3">Size Run</h3>
+                    <h3 className="mb-3 text-lg font-medium">Daftar Ukuran</h3>
                     <div className="flex flex-wrap gap-2">
                         {brand.size_runs.map((size: any) => (
-                            <span key={size.id} className="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg font-medium">
+                            <span
+                                key={size.id}
+                                className="rounded-lg bg-blue-100 px-4 py-2 font-medium text-blue-800"
+                            >
                                 {size.size_name}
                             </span>
                         ))}

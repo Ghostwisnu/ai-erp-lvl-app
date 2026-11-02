@@ -155,7 +155,7 @@
     <!-- Judul Form -->
     <div class="title">
         <h2>FORMULIR PERINTAH KERJA LEMBUR</h2>
-        <p>No. Dokumen: FR-HRD-04-03</p>
+        <p>Nomor Dokumen: FR-HRD-04-03</p>
     </div>
 
     <!-- Info Lembur (2 Kolom) -->
@@ -247,13 +247,13 @@
                     {{ $overtime->creator->name ?? '........................' }}
                 </div>
                 <!-- JABATAN DIKUNCI MENJADI STAFF -->
-                <span style="font-size: 10px;">Staff</span>
+                <span style="font-size: 10px;">Staf</span>
             </td>
             <td>
                 <div class="sig-line" style="text-transform: uppercase;">
                     {{ $overtime->pic }}
                 </div>
-                <span style="font-size: 10px;">PIC</span>
+                <span style="font-size: 10px;">Penanggung Jawab</span>
             </td>
             <td>
                 <div class="sig-line">
@@ -272,7 +272,7 @@
 
     <!-- Footer -->
     <div class="footer">
-        <i>Dokumen ini dicetak otomatis dari sistem HRIS pada {{ \Carbon\Carbon::now()->translatedFormat('d F Y H:i') }} — FR-HRD-04-03</i>
+        <i>Dokumen ini dicetak otomatis dari sistem kepegawaian pada {{ \Carbon\Carbon::now()->translatedFormat('d F Y H:i') }} — FR-HRD-04-03</i>
     </div>
 
 </body>

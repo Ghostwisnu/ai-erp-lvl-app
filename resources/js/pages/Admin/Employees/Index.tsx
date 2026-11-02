@@ -1,105 +1,190 @@
-import { Head, Link } from '@inertiajs/react';
-import { useState, useMemo } from 'react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useEffect, useRef, useState } from 'react';
 
-export default function Index({ employees, departments = [] }: any) {
-    // State untuk Filter
-    const [search, setSearch] = useState('');
-    const [selectedDept, setSelectedDept] = useState('');
+export default function Index({ employees, departments = [], filters }: any) {
+    // State untuk Filter (diproses di server agar mencakup semua halaman)
+    const [search, setSearch] = useState(filters?.search ?? '');
+    const [selectedDept, setSelectedDept] = useState(filters?.department ?? '');
+    const isFirstRender = useRef(true);
 
-    // Logika Filter
-    const filteredEmployees = useMemo(() => {
-        // Karena employees pakai pagination, kita filter 'data'-nya saja
-        const data = employees.data || [];
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
 
-        return data.filter((emp: any) => {
-            const matchSearch =
-                emp.full_name.toLowerCase().includes(search.toLowerCase()) ||
-                emp.employee_code.toLowerCase().includes(search.toLowerCase());
+            return;
+        }
 
-            const matchDept = selectedDept ? emp.department === selectedDept : true;
+        const timer = setTimeout(() => {
+            router.get(
+                '/admin/employees',
+                {
+                    search: search || undefined,
+                    department: selectedDept || undefined,
+                },
+                { preserveState: true, preserveScroll: true, replace: true },
+            );
+        }, 300);
 
-            return matchSearch && matchDept;
-        });
-    }, [employees.data, search, selectedDept]);
+        return () => clearTimeout(timer);
+    }, [search, selectedDept]);
+
+    const filteredEmployees = employees.data || [];
 
     return (
         <>
             <Head title="Data Karyawan" />
             <div className="py-12">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white shadow-sm sm:rounded-lg p-6">
-
+                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                    <div className="bg-white p-6 shadow-sm sm:rounded-lg">
                         {/* Header & Tombol Tambah */}
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="font-semibold text-xl text-gray-800">Data Karyawan</h2>
-                            <Link href="/admin/employees/import" className="bg-green-600 text-white px-4 py-2 rounded-md text-sm">
-                                Import Excel
-                            </Link>
-                            <Link href="/admin/employees/create" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm">
-                                + Tambah Karyawan
-                            </Link>
+                        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <h2 className="text-xl font-semibold text-gray-800">
+                                Data Karyawan
+                            </h2>
+                            <div className="flex flex-wrap gap-2">
+                                <Link
+                                    href="/admin/employees/import"
+                                    className="rounded-md bg-green-600 px-4 py-2 text-sm text-white"
+                                >
+                                    Impor Karyawan
+                                </Link>
+                                <Link
+                                    href="/admin/employees/bulk-update"
+                                    className="rounded-md bg-teal-600 px-4 py-2 text-sm text-white hover:bg-teal-700"
+                                >
+                                    Update Massal
+                                </Link>
+                                <Link
+                                    href="/admin/employees/salary-import"
+                                    className="rounded-md bg-amber-600 px-4 py-2 text-sm text-white hover:bg-amber-700"
+                                >
+                                    Impor Data Gaji
+                                </Link>
+                                <Link
+                                    href="/admin/employees/create"
+                                    className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
+                                >
+                                    + Tambah Karyawan
+                                </Link>
+                            </div>
                         </div>
 
                         {/* Fitur Filter */}
-                        <div className="flex flex-col md:flex-row gap-4 mb-4">
+                        <div className="mb-4 flex flex-col gap-4 md:flex-row">
                             <input
                                 type="text"
                                 placeholder="Cari Nama atau Kode..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="border p-2 rounded w-full md:w-1/3 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                className="w-full rounded border p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 md:w-1/3"
                             />
 
                             <select
                                 value={selectedDept}
-                                onChange={(e) => setSelectedDept(e.target.value)}
-                                className="border p-2 rounded w-full md:w-1/4 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                onChange={(e) =>
+                                    setSelectedDept(e.target.value)
+                                }
+                                className="w-full rounded border p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500 md:w-1/4"
                             >
                                 <option value="">Semua Departemen</option>
-                                {departments.map((dept: string, index: number) => (
-                                    <option key={index} value={dept}>{dept}</option>
-                                ))}
+                                {departments.map(
+                                    (dept: string, index: number) => (
+                                        <option key={index} value={dept}>
+                                            {dept}
+                                        </option>
+                                    ),
+                                )}
                             </select>
                         </div>
 
                         {/* Tabel Karyawan */}
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
+                            <table className="w-full border-collapse text-left">
                                 <thead>
                                     <tr className="border-b bg-gray-50">
-                                        <th className="py-2 px-3 text-sm">Foto</th>
-                                        <th className="py-2 px-3 text-sm">Kode</th>
-                                        <th className="py-2 px-3 text-sm">Nama Lengkap</th>
-                                        <th className="py-2 px-3 text-sm">Departemen</th>
-                                        <th className="py-2 px-3 text-sm">Posisi</th>
-                                        <th className="py-2 px-3 text-sm">Aksi</th>
+                                        <th className="px-3 py-2 text-sm">
+                                            Foto
+                                        </th>
+                                        <th className="px-3 py-2 text-sm">
+                                            Kode
+                                        </th>
+                                        <th className="px-3 py-2 text-sm">
+                                            Nama Lengkap
+                                        </th>
+                                        <th className="px-3 py-2 text-sm">
+                                            Departemen
+                                        </th>
+                                        <th className="px-3 py-2 text-sm">
+                                            Posisi
+                                        </th>
+                                        <th className="px-3 py-2 text-sm">
+                                            Aksi
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredEmployees.map((emp: any) => (
-                                        <tr key={emp.id} className="border-b hover:bg-gray-50">
-                                            <td className="py-2 px-3">
+                                        <tr
+                                            key={emp.id}
+                                            className="border-b hover:bg-gray-50"
+                                        >
+                                            <td className="px-3 py-2">
                                                 {emp.photo_path ? (
-                                                    <img src={`/storage/${emp.photo_path}`} alt="Foto" className="w-10 h-10 rounded-full object-cover" />
+                                                    <img
+                                                        src={`/storage/${emp.photo_path}`}
+                                                        alt="Foto"
+                                                        className="h-10 w-10 rounded-full object-cover"
+                                                    />
                                                 ) : (
-                                                    <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-xs">No Pic</div>
+                                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-xs">
+                                                        Tidak ada foto
+                                                    </div>
                                                 )}
                                             </td>
-                                            <td className="py-2 px-3 text-sm">{emp.employee_code}</td>
-                                            <td className="py-2 px-3 text-sm font-medium">{emp.full_name}</td>
-                                            <td className="py-2 px-3 text-sm">{emp.department || '-'}</td>
-                                            <td className="py-2 px-3 text-sm">{emp.position || '-'}</td>
-                                            <td className="py-2 px-3 text-sm space-x-2">
-                                                <Link href={`/admin/employees/${emp.id}`} className="text-gray-600 hover:underline">Lihat</Link>
-                                                <Link href={`/admin/employees/${emp.id}/edit`} className="text-blue-600 hover:underline">Edit</Link>
-                                                <Link href={`/admin/employees/${emp.id}`} method="delete" as="button" className="text-red-600 hover:underline">Hapus</Link>
+                                            <td className="px-3 py-2 text-sm">
+                                                {emp.employee_code}
+                                            </td>
+                                            <td className="px-3 py-2 text-sm font-medium">
+                                                {emp.full_name}
+                                            </td>
+                                            <td className="px-3 py-2 text-sm">
+                                                {emp.department || '-'}
+                                            </td>
+                                            <td className="px-3 py-2 text-sm">
+                                                {emp.position || '-'}
+                                            </td>
+                                            <td className="space-x-2 px-3 py-2 text-sm">
+                                                <Link
+                                                    href={`/admin/employees/${emp.id}`}
+                                                    className="text-gray-600 hover:underline"
+                                                >
+                                                    Lihat
+                                                </Link>
+                                                <Link
+                                                    href={`/admin/employees/${emp.id}/edit`}
+                                                    className="text-blue-600 hover:underline"
+                                                >
+                                                    Ubah
+                                                </Link>
+                                                <Link
+                                                    href={`/admin/employees/${emp.id}`}
+                                                    method="delete"
+                                                    as="button"
+                                                    className="text-red-600 hover:underline"
+                                                >
+                                                    Hapus
+                                                </Link>
                                             </td>
                                         </tr>
                                     ))}
                                     {filteredEmployees.length === 0 && (
                                         <tr>
-                                            <td colSpan={6} className="text-center py-4 text-gray-500">
-                                                Tidak ada karyawan yang sesuai dengan filter.
+                                            <td
+                                                colSpan={6}
+                                                className="py-4 text-center text-gray-500"
+                                            >
+                                                Tidak ada karyawan yang sesuai
+                                                dengan filter.
                                             </td>
                                         </tr>
                                     )}
@@ -109,24 +194,28 @@ export default function Index({ employees, departments = [] }: any) {
 
                         {/* Pagination Links (Bawaan Laravel) */}
                         <div className="mt-4">
-                            {employees.links && employees.links.map((link: any, i: number) => (
-                                link.url ? (
-                                    <Link
-                                        key={i}
-                                        href={link.url}
-                                        className={`px-3 py-1 border rounded mr-1 text-sm ${link.active ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'}`}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                ) : (
-                                    <span
-                                        key={i}
-                                        className="px-3 py-1 border rounded mr-1 text-sm bg-gray-100 text-gray-400"
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
-                                )
-                            ))}
+                            {employees.links &&
+                                employees.links.map((link: any, i: number) =>
+                                    link.url ? (
+                                        <Link
+                                            key={i}
+                                            href={link.url}
+                                            className={`mr-1 rounded border px-3 py-1 text-sm ${link.active ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'}`}
+                                            dangerouslySetInnerHTML={{
+                                                __html: link.label,
+                                            }}
+                                        />
+                                    ) : (
+                                        <span
+                                            key={i}
+                                            className="mr-1 rounded border bg-gray-100 px-3 py-1 text-sm text-gray-400"
+                                            dangerouslySetInnerHTML={{
+                                                __html: link.label,
+                                            }}
+                                        />
+                                    ),
+                                )}
                         </div>
-
                     </div>
                 </div>
             </div>

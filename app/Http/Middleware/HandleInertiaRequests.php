@@ -11,8 +11,16 @@ class HandleInertiaRequests extends Middleware
 
     public function share(Request $request): array
     {
+        $error = $request->session()->get('error');
+        $success = $request->session()->get('success');
+        $flashToast = is_string($error) && $error !== ''
+            ? ['type' => 'error', 'message' => $error]
+            : (is_string($success) && $success !== ''
+                ? ['type' => 'success', 'message' => $success]
+                : null);
+
         return array_merge(parent::share($request), [
-            // Biarkan kosong. Data auth & menus sudah diurus oleh BaseAdminController.
+            'flashToast' => $flashToast,
         ]);
     }
 }

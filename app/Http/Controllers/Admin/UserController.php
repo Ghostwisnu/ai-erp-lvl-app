@@ -9,10 +9,22 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends BaseAdminController // <-- Extend Base Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $search = trim((string) $request->query('search', ''));
+        $role = (string) $request->query('role', '');
+
+        $users = User::with('roles')
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', '%' . addcslashes($search, '\\%_') . '%'))
+            ->when($role !== '', fn ($query) => $query->whereHas('roles', fn ($q) => $q->where('name', $role)))
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
         return $this->renderAdminPage('Admin/Users/Index', [
-            'users' => User::with('roles')->latest()->paginate(10),
+            'users' => $users,
+            'roles' => Role::orderBy('name')->pluck('name'),
+            'filters' => ['search' => $search, 'role' => $role],
         ]);
     }
 

@@ -30,10 +30,11 @@ test('login screen includes team invitation context', function () {
     $response = $this->get(route('login', ['invitation' => $invitation->code]));
 
     $response->assertOk();
-    $response->assertInertia(fn (Assert $page) => $page
-        ->component('auth/login')
-        ->where('teamInvitation.code', $invitation->code)
-        ->where('teamInvitation.teamName', 'Laravel Team'),
+    $response->assertInertia(
+        fn(Assert $page) => $page
+            ->component('auth/login')
+            ->where('teamInvitation.code', $invitation->code)
+            ->where('teamInvitation.teamName', 'Laravel Team'),
     );
 });
 
@@ -41,12 +42,12 @@ test('users can authenticate using the login screen', function () {
     $user = User::factory()->create();
 
     $response = $this->post(route('login.store'), [
-        'email' => $user->email,
+        'name' => $user->name,
         'password' => 'password',
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard'));
+    $response->assertRedirect(url('/settings/profile'));
 });
 
 test('passkey login response redirects to the current team dashboard', function () {
@@ -56,11 +57,11 @@ test('passkey login response redirects to the current team dashboard', function 
         'HTTP_ACCEPT' => 'application/json',
     ]);
     $request->setLaravelSession($this->app['session.store']);
-    $request->setUserResolver(fn () => $user);
+    $request->setUserResolver(fn() => $user);
 
     $jsonResponse = app(PasskeyLoginResponse::class)->toResponse($request);
 
-    expect($jsonResponse->getData()->redirect)->toBe(route('dashboard', ['current_team' => $user->personalTeam()->slug]));
+    expect(json_decode($jsonResponse->getContent())->redirect)->toBe(route('dashboard', ['current_team' => $user->personalTeam()->slug]));
 });
 
 test('users with two factor enabled are redirected to two factor challenge', function () {
@@ -76,7 +77,7 @@ test('users with two factor enabled are redirected to two factor challenge', fun
     $user = User::factory()->withTwoFactor()->create();
 
     $response = $this->post(route('login'), [
-        'email' => $user->email,
+        'name' => $user->name,
         'password' => 'password',
     ]);
 
@@ -89,7 +90,7 @@ test('users can not authenticate with invalid password', function () {
     $user = User::factory()->create();
 
     $this->post(route('login.store'), [
-        'email' => $user->email,
+        'name' => $user->name,
         'password' => 'wrong-password',
     ]);
 
@@ -108,10 +109,10 @@ test('users can logout', function () {
 test('users are rate limited', function () {
     $user = User::factory()->create();
 
-    RateLimiter::increment(md5('login'.implode('|', [$user->email, '127.0.0.1'])), amount: 5);
+    RateLimiter::increment(md5('login' . implode('|', [strtolower($user->name), '127.0.0.1'])), amount: 5);
 
     $response = $this->post(route('login.store'), [
-        'email' => $user->email,
+        'name' => $user->name,
         'password' => 'wrong-password',
     ]);
 

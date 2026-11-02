@@ -16,4 +16,17 @@ export function useFlashToast(): void {
             toast[data.type](data.message);
         });
     }, []);
+
+    useEffect(() => {
+        return router.on('navigate', (event) => {
+            const page = (event as CustomEvent).detail?.page;
+            const data = page?.props?.flashToast as FlashToast | undefined;
+
+            if (!data) {
+                return;
+            }
+
+            toast[data.type](data.message);
+        });
+    }, []);
 }

@@ -17,8 +17,8 @@ class EmployeeTemplateExport implements FromArray, WithHeadings, WithStyles
         return [
             [
                 'Budi Santoso',
-                'budi@example.com',
                 'EMP-001',
+                '2026-11-02',
                 'IT',
                 'Staff',
                 'Operator'
@@ -31,8 +31,8 @@ class EmployeeTemplateExport implements FromArray, WithHeadings, WithStyles
         // Tanda * menandakan kolom wajib isi
         return [
             'nama *',
-            'email *',
             'kode_karyawan *',
+            'tanggal_bergabung *',
             'departemen',
             'jabatan',
             'role',

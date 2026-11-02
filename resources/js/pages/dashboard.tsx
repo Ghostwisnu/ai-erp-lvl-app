@@ -16,7 +16,7 @@ export default function Dashboard({ pendingInvitations = [] }: Props) {
 
     return (
         <>
-            <Head title="Dashboard" />
+            <Head title="Dasbor" />
             <PendingInvitationsModal
                 invitations={pendingInvitations}
                 open={pendingInvitations.length > 0 && showInvitations}
@@ -45,7 +45,7 @@ export default function Dashboard({ pendingInvitations = [] }: Props) {
 Dashboard.layout = (props: { currentTeam?: { slug: string } | null }) => ({
     breadcrumbs: [
         {
-            title: 'Dashboard',
+            title: 'Dasbor',
             href: props.currentTeam ? dashboard(props.currentTeam.slug) : '/',
         },
     ],

@@ -140,4 +140,12 @@
     body {
         @apply bg-background text-foreground;
     }
+
+    form label:has(+ :is(input, select, textarea)[required])::after,
+    form label:has(+ div > :is(input, select, textarea)[required])::after,
+    form label:has(+ div > div > :is(input, select, textarea)[required])::after,
+    form label:has(:is(input, select, textarea)[required])::after {
+        content: ' *';
+        color: var(--color-destructive);
+    }
 }

@@ -31,7 +31,7 @@ export default function Register({ passwordRules }: Props) {
 
     return (
         <>
-            <Head title="Register" />
+            <Head title="Daftar" />
 
             <form onSubmit={submit} className="flex flex-col gap-6">
                 <div className="grid gap-6">
@@ -66,7 +66,7 @@ export default function Register({ passwordRules }: Props) {
                             autoComplete="email"
                             value={data.email}
                             onChange={(e) => setData('email', e.target.value)}
-                            placeholder="email@example.com"
+                            placeholder="nama@contoh.com"
                             className={errors.email ? 'border-red-500' : ''}
                         />
                         <InputError message={errors.email} />
@@ -74,7 +74,7 @@ export default function Register({ passwordRules }: Props) {
 
                     {/* Input Password */}
                     <div className="grid gap-2">
-                        <Label htmlFor="password">Password</Label>
+                        <Label htmlFor="password">Kata sandi</Label>
                         <Input
                             id="password"
                             type="password"
@@ -82,7 +82,9 @@ export default function Register({ passwordRules }: Props) {
                             tabIndex={3}
                             autoComplete="new-password"
                             value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
+                            onChange={(e) =>
+                                setData('password', e.target.value)
+                            }
                             placeholder="Minimal 8 karakter"
                             className={errors.password ? 'border-red-500' : ''}
                         />
@@ -91,7 +93,9 @@ export default function Register({ passwordRules }: Props) {
 
                     {/* Input Konfirmasi Password */}
                     <div className="grid gap-2">
-                        <Label htmlFor="password_confirmation">Konfirmasi Password</Label>
+                        <Label htmlFor="password_confirmation">
+                            Konfirmasi kata sandi
+                        </Label>
                         <Input
                             id="password_confirmation"
                             type="password"
@@ -99,9 +103,15 @@ export default function Register({ passwordRules }: Props) {
                             tabIndex={4}
                             autoComplete="new-password"
                             value={data.password_confirmation}
-                            onChange={(e) => setData('password_confirmation', e.target.value)}
-                            placeholder="Ulangi password"
-                            className={errors.password_confirmation ? 'border-red-500' : ''}
+                            onChange={(e) =>
+                                setData('password_confirmation', e.target.value)
+                            }
+                            placeholder="Ulangi kata sandi"
+                            className={
+                                errors.password_confirmation
+                                    ? 'border-red-500'
+                                    : ''
+                            }
                         />
                         <InputError message={errors.password_confirmation} />
                     </div>

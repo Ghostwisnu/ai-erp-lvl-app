@@ -66,8 +66,8 @@ export default function TeamEdit({
     const pageTitle = useMemo(
         () =>
             permissions.canUpdateTeam
-                ? `Edit ${team.name}`
-                : `View ${team.name}`,
+                ? `Ubah ${team.name}`
+                : `Lihat ${team.name}`,
         [permissions.canUpdateTeam, team.name],
     );
 
@@ -100,8 +100,8 @@ export default function TeamEdit({
                         <>
                             <Heading
                                 variant="small"
-                                title="Team settings"
-                                description="Update your team name and settings"
+                                title="Pengaturan tim"
+                                description="Ubah nama dan pengaturan tim"
                             />
 
                             <Form
@@ -112,7 +112,7 @@ export default function TeamEdit({
                                     <>
                                         <div className="grid gap-2">
                                             <Label htmlFor="name">
-                                                Team name
+                                                Nama tim
                                             </Label>
                                             <Input
                                                 id="name"
@@ -130,7 +130,7 @@ export default function TeamEdit({
                                                 data-test="team-save-button"
                                                 disabled={processing}
                                             >
-                                                Save
+                                                Simpan
                                             </Button>
                                         </div>
                                     </>
@@ -148,10 +148,10 @@ export default function TeamEdit({
                     <div className="flex items-center justify-between">
                         <Heading
                             variant="small"
-                            title="Team members"
+                            title="Anggota tim"
                             description={
                                 permissions.canCreateInvitation
-                                    ? 'Manage who belongs to this team'
+                                    ? 'Kelola anggota tim ini'
                                     : ''
                             }
                         />
@@ -161,7 +161,7 @@ export default function TeamEdit({
                                 data-test="invite-member-button"
                                 onClick={() => setInviteDialogOpen(true)}
                             >
-                                <UserPlus /> Invite member
+                                <UserPlus /> Undang anggota
                             </Button>
                         ) : null}
                     </div>
@@ -251,7 +251,7 @@ export default function TeamEdit({
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Remove member</p>
+                                                    <p>Hapus anggota</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -266,8 +266,8 @@ export default function TeamEdit({
                     <div className="space-y-6">
                         <Heading
                             variant="small"
-                            title="Pending invitations"
-                            description="Invitations that haven't been accepted yet"
+                            title="Undangan tertunda"
+                            description="Undangan yang belum diterima"
                         />
 
                         <div className="space-y-3">
@@ -309,7 +309,7 @@ export default function TeamEdit({
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Cancel invitation</p>
+                                                    <p>Batalkan undangan</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -324,15 +324,15 @@ export default function TeamEdit({
                     <div className="space-y-6">
                         <Heading
                             variant="small"
-                            title="Delete team"
-                            description="Permanently delete your team"
+                            title="Hapus tim"
+                            description="Hapus tim Anda secara permanen"
                         />
                         <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
                             <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
-                                <p className="font-medium">Warning</p>
+                                <p className="font-medium">Peringatan</p>
                                 <p className="text-sm">
-                                    Please proceed with caution, this cannot be
-                                    undone.
+                                    Harap berhati-hati, tindakan ini tidak dapat
+                                    dibatalkan.
                                 </p>
                             </div>
                             <Button
@@ -340,7 +340,7 @@ export default function TeamEdit({
                                 data-test="delete-team-button"
                                 onClick={() => setDeleteDialogOpen(true)}
                             >
-                                Delete team
+                                Hapus tim
                             </Button>
                         </div>
                     </div>
@@ -384,7 +384,7 @@ export default function TeamEdit({
 TeamEdit.layout = (props: { team: { name: string; slug: string } }) => ({
     breadcrumbs: [
         {
-            title: 'Teams',
+            title: 'Tim',
             href: index(),
         },
         {

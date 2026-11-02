@@ -13,57 +13,74 @@ export default function Import() {
 
     return (
         <>
-            <Head title="Import Data Karyawan" />
-            <div className="py-8 max-w-3xl mx-auto sm:px-6 lg:px-8">
-                <div className="bg-white shadow-sm sm:rounded-lg p-6">
-
+            <Head title="Impor Data Karyawan" />
+            <div className="mx-auto max-w-3xl py-8 sm:px-6 lg:px-8">
+                <div className="bg-white p-6 shadow-sm sm:rounded-lg">
                     {/* Header */}
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="font-semibold text-xl text-gray-800">Upload Data Karyawan</h2>
-                        <Link href="/admin/employees" className="text-blue-600 hover:underline font-medium">
+                    <div className="mb-6 flex items-center justify-between">
+                        <h2 className="text-xl font-semibold text-gray-800">
+                            Unggah Data Karyawan
+                        </h2>
+                        <Link
+                            href="/admin/employees"
+                            className="font-medium text-blue-600 hover:underline"
+                        >
                             &larr; Kembali
                         </Link>
                     </div>
 
-                    {/* Info & Tombol Download Template */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    {/* Info dan tombol unduh templat */}
+                    <div className="mb-6 flex flex-col items-start justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 p-4 md:flex-row md:items-center">
                         <div>
-                            <h3 className="font-bold text-blue-800 mb-1">Belum punya format file?</h3>
+                            <h3 className="mb-1 font-bold text-blue-800">
+                                Belum punya format file?
+                            </h3>
                             <p className="text-sm text-blue-700">
-                                Unduh template Excel terlebih dahulu. Kolom dengan tanda <b>(*)</b> wajib diisi.
+                                Unduh template Excel terlebih dahulu. Kolom
+                                dengan tanda <b>(*)</b> wajib diisi. Tanggal
+                                bergabung dapat diisi dengan format YYYY-MM-DD
+                                atau sebagai tanggal Excel.
                             </p>
                         </div>
                         <a
                             href="/admin/employees/import/template"
-                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow font-medium text-sm whitespace-nowrap inline-block"
+                            className="inline-block rounded bg-green-600 px-4 py-2 text-sm font-medium whitespace-nowrap text-white shadow hover:bg-green-700"
                         >
-                            📥 Download Template
+                            📥 Unduh Templat
                         </a>
                     </div>
 
                     {/* Form Upload */}
                     <form onSubmit={submit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                            <label className="mb-1 block text-sm font-medium text-gray-700">
                                 Pilih File Excel (xlsx, xls, csv)
                             </label>
                             <input
                                 type="file"
                                 accept=".xlsx, .xls, .csv"
-                                onChange={e => setData('file', e.target.files?.[0] || null)}
-                                className="w-full border-gray-300 rounded-md shadow-sm p-2 border focus:border-indigo-500 focus:ring-indigo-500"
+                                onChange={(e) =>
+                                    setData('file', e.target.files?.[0] || null)
+                                }
+                                className="w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                 required
                             />
-                            {errors.file && <p className="text-red-500 text-sm mt-1">{errors.file}</p>}
+                            {errors.file && (
+                                <p className="mt-1 text-sm text-red-500">
+                                    {errors.file}
+                                </p>
+                            )}
                         </div>
 
-                        <div className="flex justify-end pt-4 border-t">
+                        <div className="flex justify-end border-t pt-4">
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium disabled:opacity-50"
+                                className="rounded bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                             >
-                                {processing ? 'Membaca File...' : 'Upload & Preview Data'}
+                                {processing
+                                    ? 'Membaca File...'
+                                    : 'Unggah dan Pratinjau Data'}
                             </button>
                         </div>
                     </form>

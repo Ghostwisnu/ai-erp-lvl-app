@@ -3,13 +3,15 @@
 namespace App\Http\Controllers\Produksi;
 
 use App\Http\Controllers\Admin\BaseAdminController;
+use App\Exports\PpsExport;
+use App\Models\Brand;
+use App\Models\ProductionDaily;
 use App\Models\Spk;
 use App\Models\SpkBatch;
 use App\Models\SpkBatchTrack;
-use App\Models\ProductionDaily;
-use App\Models\ProductionScan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SpkBatchController extends BaseAdminController
 {
@@ -128,7 +130,21 @@ class SpkBatchController extends BaseAdminController
         return $this->renderAdminPage('Produksi/Batch/Schedule', [
             'spks' => $spks,
             'finishingScans' => $scanResults, // Data scan terstruktur
+            'brands' => Brand::query()->orderBy('name')->get(['id', 'name']),
         ]);
+    }
+
+    public function exportSchedule(Request $request)
+    {
+        $validated = $request->validate([
+            'brand_id' => 'nullable|integer|exists:brands,id',
+        ]);
+        $brandId = isset($validated['brand_id']) ? (int) $validated['brand_id'] : null;
+        $filename = $brandId
+            ? "data-pps-brand-{$brandId}.xlsx"
+            : 'data-pps-semua-brand.xlsx';
+
+        return Excel::download(new PpsExport($brandId), $filename);
     }
 
     // 6. Simpan Daily Output Massal

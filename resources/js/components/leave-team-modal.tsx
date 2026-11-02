@@ -38,16 +38,16 @@ export default function LeaveTeamModal({ team, open, onOpenChange }: Props) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Leave team</DialogTitle>
+                    <DialogTitle>Keluar dari tim</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to leave{' '}
+                        Apakah Anda yakin ingin keluar dari tim{' '}
                         <strong>{team?.name}</strong>?
                     </DialogDescription>
                 </DialogHeader>
 
                 <DialogFooter className="gap-2">
                     <DialogClose asChild>
-                        <Button variant="secondary">Cancel</Button>
+                        <Button variant="secondary">Batal</Button>
                     </DialogClose>
 
                     <Button
@@ -56,7 +56,7 @@ export default function LeaveTeamModal({ team, open, onOpenChange }: Props) {
                         disabled={processing}
                         onClick={leaveTeam}
                     >
-                        Leave team
+                        Keluar dari tim
                     </Button>
                 </DialogFooter>
             </DialogContent>

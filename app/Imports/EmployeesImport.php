@@ -3,10 +3,11 @@
 namespace App\Imports;
 
 use App\Models\Employee;
-use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 class EmployeesImport implements ToCollection, WithHeadingRow
 {
@@ -14,28 +15,78 @@ class EmployeesImport implements ToCollection, WithHeadingRow
 
     public function collection(Collection $rows): void
     {
-        foreach ($rows as $row) {
-            // 1. Validasi Kolom Wajib (Nama, Email, Kode Karyawan)
-            // Jika ada yang kosong, lewati baris ini.
-            if (empty($row['nama']) || empty($row['email']) || empty($row['kode_karyawan'])) {
+        $seenCodes = [];
+
+        foreach ($rows as $index => $row) {
+            $name = trim((string) ($row['nama'] ?? ''));
+            $employeeCode = trim((string) ($row['kode_karyawan'] ?? ''));
+            $joinDate = $this->parseJoinDate($row['tanggal_bergabung'] ?? null);
+
+            if ($name === '' && $employeeCode === '' && empty($row['tanggal_bergabung'])) {
                 continue;
             }
 
-            // 2. Cek Duplikasi di Database
-            $userExists = User::where('email', $row['email'])->exists();
-            $empExists = Employee::where('employee_code', $row['kode_karyawan'])->exists();
+            $errors = [];
 
-            // 3. Susun Data Preview
+            if ($name === '') {
+                $errors[] = 'Nama wajib diisi.';
+            }
+
+            if ($employeeCode === '') {
+                $errors[] = 'Kode karyawan wajib diisi.';
+            } elseif (isset($seenCodes[$employeeCode])) {
+                $errors[] = 'Kode karyawan duplikat di dalam file.';
+            } elseif (Employee::where('employee_code', $employeeCode)->exists()) {
+                $errors[] = 'Kode karyawan sudah terdaftar.';
+            }
+
+            if ($employeeCode !== '') {
+                $seenCodes[$employeeCode] = true;
+            }
+
+            if (!$joinDate) {
+                $errors[] = 'Tanggal bergabung wajib diisi dengan tanggal yang valid.';
+            }
+
             $this->previewData[] = [
-                'name' => $row['nama'],
-                'email' => $row['email'],
-                'employee_code' => $row['kode_karyawan'],
+                'name' => $name,
+                'employee_code' => $employeeCode,
                 'department' => $row['departemen'] ?? '-',
                 'position' => $row['jabatan'] ?? '-',
                 'role' => $row['role'] ?? 'operator',
-                'status' => ($userExists || $empExists) ? 'Gagal (Data sudah ada)' : 'Siap Diimport',
-                'is_valid' => !$userExists && !$empExists
+                'join_date' => $joinDate,
+                'status' => $errors ? implode(' ', $errors) : 'Siap Diimport',
+                'is_valid' => $errors === [],
             ];
+        }
+    }
+
+    private function parseJoinDate(mixed $value): ?string
+    {
+        if ($value === null || trim((string) $value) === '') {
+            return null;
+        }
+
+        try {
+            if (is_numeric($value)) {
+                return ExcelDate::excelToDateTimeObject((float) $value)->format('Y-m-d');
+            }
+
+            $dateValue = trim((string) $value);
+
+            foreach (['Y-m-d', 'd/m/Y'] as $format) {
+                if (Carbon::canBeCreatedFromFormat($dateValue, '!' . $format)) {
+                    $date = Carbon::createFromFormat('!' . $format, $dateValue);
+
+                    if ($date->format($format) === $dateValue) {
+                        return $date->toDateString();
+                    }
+                }
+            }
+
+            return null;
+        } catch (\Exception) {
+            return null;
         }
     }
 }

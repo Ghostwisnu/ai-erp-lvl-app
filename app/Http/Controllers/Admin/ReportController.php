@@ -2,14 +2,89 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\AttendanceSummaryExport;
 use App\Models\Employee;
+use App\Models\Holiday;
 use App\Models\LeaveRequest;
 use App\Models\Overtime;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends BaseAdminController
 {
+    public function export(Request $request)
+    {
+        $validated = $request->validate([
+            'month' => ['required', 'integer', 'between:1,12'],
+            'year' => ['required', 'integer', 'between:2000,2100'],
+            'department' => ['nullable', 'string', 'max:255'],
+            'search' => ['nullable', 'string', 'max:255'],
+        ]);
+        $month = (int) $validated['month'];
+        $year = (int) $validated['year'];
+        $filename = sprintf('laporan-absensi-%04d-%02d.xlsx', $year, $month);
+
+        return Excel::download(
+            new AttendanceSummaryExport(
+                $month,
+                $year,
+                $validated['department'] ?? null,
+                $validated['search'] ?? null,
+            ),
+            $filename,
+        );
+    }
+
+    public function dailyAttendance(Request $request)
+    {
+        $validated = $request->validate([
+            'date' => ['nullable', 'date'],
+        ]);
+        $date = $validated['date'] ?? Carbon::today()->toDateString();
+        $carbonDate = Carbon::parse($date);
+        $holidayName = Holiday::query()->whereDate('date', $date)->value('name');
+        $isDayOff = $carbonDate->isWeekend() || $holidayName !== null;
+
+        $employees = Employee::query()
+            ->with([
+                'attendances' => fn ($query) => $query->whereDate('date', $date),
+                'fingerLogs' => fn ($query) => $query->whereDate('scan_time', $date)->orderBy('scan_time'),
+            ])
+            ->orderBy('full_name')
+            ->get();
+
+        $attendanceData = $employees->map(function (Employee $employee) use ($isDayOff) {
+            $attendance = $employee->attendances->first();
+            $logs = $employee->fingerLogs;
+            $firstScan = $logs->first()?->scan_time;
+            $lastScan = $logs->count() > 1 ? $logs->last()?->scan_time : null;
+            $checkIn = $attendance?->check_in ?: $firstScan;
+            $checkOut = $attendance?->check_out ?: $lastScan;
+
+            return [
+                'employee_id' => $employee->id,
+                'code' => $employee->employee_code,
+                'name' => $employee->full_name,
+                'department' => $employee->department,
+                'check_in' => $checkIn ? Carbon::parse($checkIn)->format('H:i') : null,
+                'check_out' => $checkOut ? Carbon::parse($checkOut)->format('H:i') : null,
+                'total_scan' => $logs->count(),
+                'status' => $isDayOff
+                    ? 'present'
+                    : ($attendance?->status ?? ($logs->isNotEmpty() ? 'present' : 'absent')),
+            ];
+        });
+
+        return $this->renderAdminPage('Admin/Reports/AttendanceDaily', [
+            'attendanceData' => $attendanceData,
+            'date' => $date,
+            'dayOffLabel' => $holidayName
+                ? "Tanggal merah: {$holidayName}"
+                : ($carbonDate->isWeekend() ? 'Akhir pekan' : null),
+        ]);
+    }
+
     public function index(Request $request)
     {
         $inputMonth = (int) $request->input('month', Carbon::now()->month);
@@ -27,14 +102,20 @@ class ReportController extends BaseAdminController
         $departments = Employee::whereNotNull('department')->distinct()->pluck('department')->toArray();
         $employees = Employee::orderBy('full_name')->get();
 
+        $holidayNames = Holiday::query()
+            ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->pluck('name', 'date');
+
         $dates = [];
         $currentDate = $startDate->copy();
         while ($currentDate <= $endDate) {
+            $date = $currentDate->toDateString();
             $dates[] = [
-                'date' => $currentDate->toDateString(),
+                'date' => $date,
                 'day' => $currentDate->format('d'),
                 'day_name' => $currentDate->translatedFormat('D'),
                 'is_weekend' => in_array($currentDate->dayOfWeek, [Carbon::SATURDAY, Carbon::SUNDAY]),
+                'holiday_name' => $holidayNames->get($date),
             ];
             $currentDate->addDay();
         }
@@ -71,6 +152,20 @@ class ReportController extends BaseAdminController
                     $dateStr = $dateInfo['date'];
                     $currentDate = Carbon::parse($dateStr);
                     $attendance = $attendanceMap->get($dateStr);
+                    $isWeekend = $dateInfo['is_weekend'];
+                    $isHoliday = $dateInfo['holiday_name'] !== null;
+
+                    if ($isWeekend || $isHoliday) {
+                        return [
+                            'date' => $dateStr,
+                            'status' => 'present',
+                            'is_leave' => false,
+                            'is_day_off' => true,
+                            'day_off_label' => $dateInfo['holiday_name']
+                                ? 'Tanggal merah: ' . $dateInfo['holiday_name']
+                                : 'Akhir pekan',
+                        ];
+                    }
 
                     // Cek apakah tanggal ini masuk dalam rentang izin (menggunakan Carbon)
                     $onLeave = $empLeaves->first(function ($leave) use ($currentDate) {
@@ -90,6 +185,8 @@ class ReportController extends BaseAdminController
                             'date' => $dateStr,
                             'status' => $status,
                             'is_leave' => true,
+                            'is_day_off' => false,
+                            'day_off_label' => null,
                         ];
                     }
 
@@ -97,6 +194,8 @@ class ReportController extends BaseAdminController
                         'date' => $dateStr,
                         'status' => $attendance ? $attendance->status : null,
                         'is_leave' => false,
+                        'is_day_off' => false,
+                        'day_off_label' => null,
                     ];
                 }),
             ];
@@ -129,9 +228,43 @@ class ReportController extends BaseAdminController
             ];
         });
 
+        // 5. Data Izin / Cuti (hanya karyawan yang punya izin pada periode ini)
+        $leaveData = $employees->map(function ($emp) use ($dates, $approvedLeaves) {
+            $empLeaves = $approvedLeaves->where('employee_id', $emp->id);
+
+            $daily = collect($dates)->map(function ($dateInfo) use ($empLeaves) {
+                $currentDate = Carbon::parse($dateInfo['date']);
+
+                $leave = $empLeaves->first(function ($leave) use ($currentDate) {
+                    $start = Carbon::parse($leave->start_date);
+                    $end = $leave->end_date ? Carbon::parse($leave->end_date) : $start;
+
+                    return $currentDate->between($start, $end);
+                });
+
+                $isDayOff = $dateInfo['is_weekend'] || $dateInfo['holiday_name'] !== null;
+
+                return [
+                    'date' => $dateInfo['date'],
+                    'leave_type' => ($leave && !$isDayOff) ? $leave->type : null,
+                    'reason' => ($leave && !$isDayOff) ? $leave->reason : null,
+                ];
+            });
+
+            return [
+                'id' => $emp->id,
+                'name' => $emp->full_name,
+                'code' => $emp->employee_code,
+                'department' => $emp->department,
+                'daily' => $daily,
+                'has_leave' => $daily->contains(fn ($day) => $day['leave_type'] !== null),
+            ];
+        })->filter(fn ($row) => $row['has_leave'])->values();
+
         return $this->renderAdminPage('Admin/Reports/Index', [
             'attendanceData' => $attendanceData,
             'overtimeData' => $overtimeData,
+            'leaveData' => $leaveData,
             'dates' => $dates,
             'month' => $inputMonth,
             'year' => $inputYear,

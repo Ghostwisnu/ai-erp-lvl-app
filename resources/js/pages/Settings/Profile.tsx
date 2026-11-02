@@ -18,61 +18,94 @@ export default function Profile() {
 
     return (
         <>
-            <Head title="My Profile" />
+            <Head title="Profil Saya" />
 
             <div className="py-12">
-                <div className="max-w-3xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white shadow-sm sm:rounded-lg p-6">
-                        <h2 className="font-semibold text-xl text-gray-800 mb-6">
+                <div className="mx-auto max-w-3xl sm:px-6 lg:px-8">
+                    <div className="bg-white p-6 shadow-sm sm:rounded-lg">
+                        <h2 className="mb-6 text-xl font-semibold text-gray-800">
                             Pengaturan Profil
                         </h2>
 
                         <form onSubmit={submit} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
+                                <label className="mb-1 block text-sm font-medium text-gray-700">
+                                    Nama
+                                </label>
                                 <input
                                     type="text"
                                     value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
-                                    className="w-full border-gray-300 rounded-md shadow-sm"
+                                    onChange={(e) =>
+                                        setData('name', e.target.value)
+                                    }
+                                    className="w-full rounded-md border-gray-300 shadow-sm"
                                     required
                                 />
-                                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                                {errors.name && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                        {errors.name}
+                                    </p>
+                                )}
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <label className="mb-1 block text-sm font-medium text-gray-700">
+                                    Alamat email
+                                </label>
                                 <input
                                     type="email"
                                     value={data.email}
-                                    onChange={(e) => setData('email', e.target.value)}
-                                    className="w-full border-gray-300 rounded-md shadow-sm"
+                                    onChange={(e) =>
+                                        setData('email', e.target.value)
+                                    }
+                                    className="w-full rounded-md border-gray-300 shadow-sm"
                                     required
                                 />
-                                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                                {errors.email && (
+                                    <p className="mt-1 text-sm text-red-500">
+                                        {errors.email}
+                                    </p>
+                                )}
                             </div>
 
-                            <div className="border-t pt-4 mt-4">
-                                <h3 className="font-medium text-gray-700 mb-2">Ganti Password (Opsional)</h3>
+                            <div className="mt-4 border-t pt-4">
+                                <h3 className="mb-2 font-medium text-gray-700">
+                                    Ganti kata sandi (opsional)
+                                </h3>
                                 <div className="mb-4">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Password Baru</label>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                                        Kata sandi baru
+                                    </label>
                                     <input
                                         type="password"
                                         value={data.password}
-                                        onChange={(e) => setData('password', e.target.value)}
-                                        className="w-full border-gray-300 rounded-md shadow-sm"
+                                        onChange={(e) =>
+                                            setData('password', e.target.value)
+                                        }
+                                        className="w-full rounded-md border-gray-300 shadow-sm"
                                         placeholder="Kosongkan jika tidak diubah"
                                     />
-                                    {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+                                    {errors.password && (
+                                        <p className="mt-1 text-sm text-red-500">
+                                            {errors.password}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password Baru</label>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                                        Konfirmasi kata sandi baru
+                                    </label>
                                     <input
                                         type="password"
                                         value={data.password_confirmation}
-                                        onChange={(e) => setData('password_confirmation', e.target.value)}
-                                        className="w-full border-gray-300 rounded-md shadow-sm"
+                                        onChange={(e) =>
+                                            setData(
+                                                'password_confirmation',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="w-full rounded-md border-gray-300 shadow-sm"
                                     />
                                 </div>
                             </div>
@@ -81,9 +114,11 @@ export default function Profile() {
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm disabled:opacity-50"
+                                    className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
                                 >
-                                    {processing ? 'Menyimpan...' : 'Simpan Profil'}
+                                    {processing
+                                        ? 'Menyimpan...'
+                                        : 'Simpan Profil'}
                                 </button>
                             </div>
                         </form>
