@@ -7,7 +7,7 @@ export default function Index() {
     const [ips, setIps] = useState([
         '192.168.100.201',
         '192.168.100.29',
-        '192.168.100.78'
+        '192.168.100.78',
     ]);
     const [port, setPort] = useState('4370');
     const [loading, setLoading] = useState(false);
@@ -24,7 +24,10 @@ export default function Index() {
         setResults(null);
 
         try {
-            const response = await axios.post('/admin/setting-finger/test', { ips, port });
+            const response = await axios.post('/admin/setting-finger/test', {
+                ips,
+                port,
+            });
             setResults(response.data.results);
         } catch {
             alert('Terjadi kesalahan sistem saat mengetes.');
@@ -36,22 +39,36 @@ export default function Index() {
     return (
         <>
             <Head title="Tes Koneksi Finger" />
-            <div className="py-8 max-w-3xl mx-auto sm:px-6 lg:px-8">
-                <div className="bg-white shadow-sm sm:rounded-lg p-6">
-                    <h2 className="font-semibold text-xl mb-6">Tes Koneksi 3 Mesin Finger</h2>
+            <div className="mx-auto max-w-3xl py-8 sm:px-6 lg:px-8">
+                <div className="bg-white p-6 shadow-sm sm:rounded-lg">
+                    <h2 className="mb-6 text-xl font-semibold">
+                        Tes Koneksi 3 Mesin Finger
+                    </h2>
 
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium mb-2">Daftar IP Mesin</label>
+                            <label className="mb-2 block text-sm font-medium">
+                                Daftar IP Mesin
+                            </label>
                             <div className="space-y-2">
                                 {ips.map((ip, index) => (
-                                    <div key={index} className="flex gap-2 items-center">
-                                        <span className="text-gray-500 w-16">Mesin {index + 1}</span>
+                                    <div
+                                        key={index}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <span className="w-16 text-gray-500">
+                                            Mesin {index + 1}
+                                        </span>
                                         <input
                                             type="text"
                                             value={ip}
-                                            onChange={e => handleIpChange(index, e.target.value)}
-                                            className="w-full border p-2 rounded"
+                                            onChange={(e) =>
+                                                handleIpChange(
+                                                    index,
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full rounded border p-2"
                                             placeholder="192.168.x.x"
                                         />
                                     </div>
@@ -60,12 +77,14 @@ export default function Index() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1">Port</label>
+                            <label className="mb-1 block text-sm font-medium">
+                                Port
+                            </label>
                             <input
                                 type="text"
                                 value={port}
-                                onChange={e => setPort(e.target.value)}
-                                className="w-48 border p-2 rounded"
+                                onChange={(e) => setPort(e.target.value)}
+                                className="w-48 rounded border p-2"
                                 placeholder="4370"
                             />
                         </div>
@@ -74,7 +93,7 @@ export default function Index() {
                             <button
                                 onClick={handleTest}
                                 disabled={loading}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-medium disabled:opacity-50"
+                                className="rounded bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                             >
                                 {loading ? 'Mengetes...' : 'Tes Semua Koneksi'}
                             </button>
@@ -84,16 +103,25 @@ export default function Index() {
                     {/* Hasil Tes per Mesin */}
                     {results && (
                         <div className="mt-8 space-y-3">
-                            <h3 className="font-bold text-lg border-b pb-2">Hasil Tes:</h3>
+                            <h3 className="border-b pb-2 text-lg font-bold">
+                                Hasil Tes:
+                            </h3>
                             {results.map((result, index) => (
                                 <div
                                     key={index}
-                                    className={`p-4 rounded border-l-4 flex justify-between items-center ${result.success ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'
-                                        }`}
+                                    className={`flex items-center justify-between rounded border-l-4 p-4 ${
+                                        result.success
+                                            ? 'border-green-500 bg-green-50'
+                                            : 'border-red-500 bg-red-50'
+                                    }`}
                                 >
                                     <div>
-                                        <span className="font-bold block text-gray-800">{result.ip}</span>
-                                        <span className={`text-sm ${result.success ? 'text-green-600' : 'text-red-600'}`}>
+                                        <span className="block font-bold text-gray-800">
+                                            {result.ip}
+                                        </span>
+                                        <span
+                                            className={`text-sm ${result.success ? 'text-green-600' : 'text-red-600'}`}
+                                        >
                                             {result.message}
                                         </span>
                                     </div>

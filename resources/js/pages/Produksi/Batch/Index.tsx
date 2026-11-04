@@ -408,7 +408,9 @@ export default function Index({ spk }: any) {
                                                 batch.current_department || ''
                                             }
                                         >
-                                            <option value="">Pilih Departemen</option>
+                                            <option value="">
+                                                Pilih Departemen
+                                            </option>
                                             <option value="cutting">
                                                 Pemotongan
                                             </option>
