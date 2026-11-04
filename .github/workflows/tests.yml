@@ -136,8 +136,9 @@ jobs:
           printf -v APP_PATH_ARG '%q' "$HOSTINGER_APP_PATH"
           printf -v PUBLIC_PATH_ARG '%q' "$HOSTINGER_PUBLIC_PATH"
           SSH_OPTIONS=(-p "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" -o BatchMode=yes -o StrictHostKeyChecking=yes)
+          SCP_OPTIONS=(-P "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" -o BatchMode=yes -o StrictHostKeyChecking=yes)
 
-          scp "${SSH_OPTIONS[@]}" release.tar.gz "$HOSTINGER_USER@$HOSTINGER_HOST:$REMOTE_ARCHIVE"
+          scp "${SCP_OPTIONS[@]}" release.tar.gz "$HOSTINGER_USER@$HOSTINGER_HOST:$REMOTE_ARCHIVE"
 
           # The path arguments are Bash-escaped for the remote command above.
           # shellcheck disable=SC2029
