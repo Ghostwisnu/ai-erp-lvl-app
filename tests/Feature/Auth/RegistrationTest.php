@@ -43,6 +43,7 @@ test('new users can register', function () {
 
     $this->assertAuthenticated();
 
-    $user = User::where('email', 'test@example.com')->first();
-    $response->assertRedirect(route('dashboard'));
+    $user = User::where('email', 'test@example.com')->firstOrFail();
+    $this->assertTrue($user->currentTeam->is_personal);
+    $response->assertRedirect("/{$user->currentTeam->slug}/settings/profile");
 });

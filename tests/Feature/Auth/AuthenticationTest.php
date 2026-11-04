@@ -50,7 +50,7 @@ test('users can authenticate using the login screen', function () {
     $response->assertRedirect(url('/settings/profile'));
 });
 
-test('passkey login response redirects to the current team dashboard', function () {
+test('passkey login response redirects to the current team profile', function () {
     $user = User::factory()->create();
 
     $request = Request::create(route('login', absolute: false), 'GET', server: [
@@ -61,7 +61,7 @@ test('passkey login response redirects to the current team dashboard', function 
 
     $jsonResponse = app(PasskeyLoginResponse::class)->toResponse($request);
 
-    expect(json_decode($jsonResponse->getContent())->redirect)->toBe(route('dashboard', ['current_team' => $user->personalTeam()->slug]));
+    expect(json_decode($jsonResponse->getContent())->redirect)->toBe("/{$user->personalTeam()->slug}/settings/profile");
 });
 
 test('users with two factor enabled are redirected to two factor challenge', function () {
@@ -103,7 +103,7 @@ test('users can logout', function () {
     $response = $this->actingAs($user)->post(route('logout'));
 
     $this->assertGuest();
-    $response->assertRedirect(route('home'));
+    $response->assertRedirect(route('login'));
 });
 
 test('users are rate limited', function () {

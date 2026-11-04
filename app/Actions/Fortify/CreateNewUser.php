@@ -2,6 +2,7 @@
 
 namespace App\Actions\Fortify;
 
+use App\Actions\Teams\CreateTeam;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -36,6 +37,8 @@ class CreateNewUser implements CreatesNewUsers
         $operatorRole = Role::firstOrCreate(['name' => 'operator', 'guard_name' => 'web']);
         $user->assignRole($operatorRole);
         // -----------------------------------
+
+        app(CreateTeam::class)->handle($user, "{$user->name}'s Team", isPersonal: true);
 
         return $user;
     }
