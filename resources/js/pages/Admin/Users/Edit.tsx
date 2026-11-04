@@ -158,7 +158,9 @@ export default function Edit({ user, roles }: Props) {
                                     disabled={processing}
                                     className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
                                 >
-                                    {processing ? 'Menyimpan...' : 'Simpan Perubahan'}
+                                    {processing
+                                        ? 'Menyimpan...'
+                                        : 'Simpan Perubahan'}
                                 </button>
                             </div>
                         </form>

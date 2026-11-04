@@ -233,23 +233,23 @@ export default function Create({ users, canViewSalary }: any) {
                                 </div>
                             </div>
                             {canViewSalary && (
-                            <div>
-                                <label className="mb-1 block text-sm">
-                                    Gaji Pokok (Rp)
-                                </label>
-                                <input
-                                    type="number"
-                                    value={data.basic_salary}
-                                    onChange={(e) =>
-                                        setData(
-                                            'basic_salary',
-                                            Number(e.target.value),
-                                        )
-                                    }
-                                    className="w-full rounded border p-2"
-                                    required
-                                />
-                            </div>
+                                <div>
+                                    <label className="mb-1 block text-sm">
+                                        Gaji Pokok (Rp)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={data.basic_salary}
+                                        onChange={(e) =>
+                                            setData(
+                                                'basic_salary',
+                                                Number(e.target.value),
+                                            )
+                                        }
+                                        className="w-full rounded border p-2"
+                                        required
+                                    />
+                                </div>
                             )}
                             <div>
                                 <label className="mb-1 block text-sm">

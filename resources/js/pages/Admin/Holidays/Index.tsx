@@ -10,14 +10,18 @@ export default function Index({ localHolidays }: any) {
     const submit = (e: FormEvent) => {
         e.preventDefault();
         post('/admin/holidays', {
-            onSuccess: () => reset()
+            onSuccess: () => reset(),
         });
     };
 
     const handleImportNational = () => {
-        if (confirm('Import semua hari libur nasional tahun ini? Data yang sudah ada tidak akan diduplikasi.')) {
+        if (
+            confirm(
+                'Import semua hari libur nasional tahun ini? Data yang sudah ada tidak akan diduplikasi.',
+            )
+        ) {
             router.post('/admin/holidays/import-national', {
-                year: new Date().getFullYear()
+                year: new Date().getFullYear(),
             });
         }
     };
@@ -25,49 +29,66 @@ export default function Index({ localHolidays }: any) {
     return (
         <>
             <Head title="Manajemen Tanggal Merah" />
-            <div className="py-8 max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-
+            <div className="mx-auto max-w-7xl space-y-6 py-8 sm:px-6 lg:px-8">
                 {/* Form Tambah Manual & Tombol Import */}
-                <div className="bg-white shadow-sm sm:rounded-lg p-6">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="font-semibold text-xl text-gray-800">Tambah Tanggal Merah Manual</h2>
+                <div className="bg-white p-6 shadow-sm sm:rounded-lg">
+                    <div className="mb-4 flex items-center justify-between">
+                        <h2 className="text-xl font-semibold text-gray-800">
+                            Tambah Tanggal Merah Manual
+                        </h2>
                         <button
                             onClick={handleImportNational}
                             type="button"
-                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2"
+                            className="flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
                         >
                             📥 Import Libur Nasional {new Date().getFullYear()}
                         </button>
                     </div>
 
-                    <form onSubmit={submit} className="flex gap-4 items-end">
+                    <form onSubmit={submit} className="flex items-end gap-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1">Tanggal</label>
+                            <label className="mb-1 block text-sm font-medium">
+                                Tanggal
+                            </label>
                             <input
                                 type="date"
                                 value={data.date}
-                                onChange={e => setData('date', e.target.value)}
-                                className="border p-2 rounded"
+                                onChange={(e) =>
+                                    setData('date', e.target.value)
+                                }
+                                className="rounded border p-2"
                                 required
                             />
-                            {errors.date && <p className="text-red-500 text-sm mt-1">{errors.date}</p>}
+                            {errors.date && (
+                                <p className="mt-1 text-sm text-red-500">
+                                    {errors.date}
+                                </p>
+                            )}
                         </div>
                         <div className="flex-1">
-                            <label className="block text-sm font-medium mb-1">Nama Hari Raya / Libur</label>
+                            <label className="mb-1 block text-sm font-medium">
+                                Nama Hari Raya / Libur
+                            </label>
                             <input
                                 type="text"
                                 value={data.name}
-                                onChange={e => setData('name', e.target.value)}
-                                className="w-full border p-2 rounded"
+                                onChange={(e) =>
+                                    setData('name', e.target.value)
+                                }
+                                className="w-full rounded border p-2"
                                 placeholder="Contoh: Cuti Bersama Idul Fitri"
                                 required
                             />
-                            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                            {errors.name && (
+                                <p className="mt-1 text-sm text-red-500">
+                                    {errors.name}
+                                </p>
+                            )}
                         </div>
                         <button
                             type="submit"
                             disabled={processing}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:opacity-50"
+                            className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
                         >
                             {processing ? 'Menyimpan...' : 'Simpan'}
                         </button>
@@ -75,9 +96,11 @@ export default function Index({ localHolidays }: any) {
                 </div>
 
                 {/* Tabel Daftar Tanggal Merah Tersimpan */}
-                <div className="bg-white shadow-sm sm:rounded-lg p-6">
-                    <h3 className="font-semibold text-lg mb-4 text-gray-800">Daftar Tanggal Merah Tersimpan</h3>
-                    <table className="w-full text-left text-sm border-collapse">
+                <div className="bg-white p-6 shadow-sm sm:rounded-lg">
+                    <h3 className="mb-4 text-lg font-semibold text-gray-800">
+                        Daftar Tanggal Merah Tersimpan
+                    </h3>
+                    <table className="w-full border-collapse text-left text-sm">
                         <thead>
                             <tr className="border-b bg-gray-50">
                                 <th className="p-3">Tanggal</th>
@@ -88,24 +111,39 @@ export default function Index({ localHolidays }: any) {
                         </thead>
                         <tbody>
                             {localHolidays.map((h: any) => (
-                                <tr key={h.id} className="border-b hover:bg-gray-50">
-                                    <td className="p-3 font-medium">{h.date}</td>
+                                <tr
+                                    key={h.id}
+                                    className="border-b hover:bg-gray-50"
+                                >
+                                    <td className="p-3 font-medium">
+                                        {h.date}
+                                    </td>
                                     <td className="p-3">{h.name}</td>
                                     <td className="p-3">
                                         {h.is_national ? (
-                                            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">Nasional</span>
+                                            <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-700">
+                                                Nasional
+                                            </span>
                                         ) : (
-                                            <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Manual</span>
+                                            <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
+                                                Manual
+                                            </span>
                                         )}
                                     </td>
                                     <td className="p-3">
                                         <button
                                             onClick={() => {
-                                                if (confirm('Hapus tanggal merah ini?')) {
-                                                    router.delete(`/admin/holidays/${h.id}`);
+                                                if (
+                                                    confirm(
+                                                        'Hapus tanggal merah ini?',
+                                                    )
+                                                ) {
+                                                    router.delete(
+                                                        `/admin/holidays/${h.id}`,
+                                                    );
                                                 }
                                             }}
-                                            className="text-red-600 hover:underline font-medium"
+                                            className="font-medium text-red-600 hover:underline"
                                         >
                                             Hapus
                                         </button>
@@ -114,8 +152,13 @@ export default function Index({ localHolidays }: any) {
                             ))}
                             {localHolidays.length === 0 && (
                                 <tr>
-                                    <td colSpan={4} className="p-6 text-center text-gray-500">
-                                        Belum ada data tanggal merah. Silakan tambah manual atau import dari kalender nasional.
+                                    <td
+                                        colSpan={4}
+                                        className="p-6 text-center text-gray-500"
+                                    >
+                                        Belum ada data tanggal merah. Silakan
+                                        tambah manual atau import dari kalender
+                                        nasional.
                                     </td>
                                 </tr>
                             )}

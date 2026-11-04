@@ -18,7 +18,10 @@ export function UserInfo({ user, team, showEmail = false }: Props) {
         <>
             <Avatar className="h-8 w-8 overflow-hidden rounded-full">
                 {/* HAPUS KOMENTAR DAN GUNAKAN PHOTO_URL */}
-                <AvatarImage src={user.photo_url || undefined} alt={user.name} />
+                <AvatarImage
+                    src={user.photo_url || undefined}
+                    alt={user.name}
+                />
 
                 {/* Fallback (Inisial) hanya akan muncul jika photo_url kosong atau error */}
                 <AvatarFallback className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
