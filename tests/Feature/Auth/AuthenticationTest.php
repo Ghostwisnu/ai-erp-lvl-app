@@ -61,7 +61,7 @@ test('passkey login response redirects to the current team profile', function ()
 
     $jsonResponse = app(PasskeyLoginResponse::class)->toResponse($request);
 
-    expect(json_decode($jsonResponse->getContent())->redirect)->toBe("/{$user->personalTeam()->slug}/settings/profile");
+    expect(json_decode($jsonResponse->getContent())->redirect)->toBe(url("/{$user->personalTeam()->slug}/settings/profile"));
 });
 
 test('users with two factor enabled are redirected to two factor challenge', function () {
