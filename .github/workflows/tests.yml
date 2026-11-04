@@ -122,28 +122,20 @@ jobs:
           chmod 600 "$HOME/.ssh/id_ed25519"
           printf '%s\n' "$HOSTINGER_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
-          HOSTINGER_ENDPOINT="[$HOSTINGER_HOST]:$HOSTINGER_SSH_PORT"
-          if ! ssh-keygen -F "$HOSTINGER_ENDPOINT" -f "$HOME/.ssh/known_hosts" >/dev/null; then
-            KNOWN_HOSTS_ALIAS="$(mktemp)"
-            awk -v host="$HOSTINGER_HOST" -v endpoint="$HOSTINGER_ENDPOINT" '
-              /^[[:space:]]*#/ || NF < 3 { next }
-              {
-                host_field = ($1 ~ /^@/) ? 2 : 1
-                if ($host_field == host) {
-                  $host_field = endpoint
-                  print
-                }
-              }
-            ' "$HOME/.ssh/known_hosts" > "$KNOWN_HOSTS_ALIAS"
-            if [ -s "$KNOWN_HOSTS_ALIAS" ]; then
-              cat "$KNOWN_HOSTS_ALIAS" >> "$HOME/.ssh/known_hosts"
-            fi
-            rm -f "$KNOWN_HOSTS_ALIAS"
+          if [ "$HOSTINGER_SSH_PORT" = 22 ]; then
+            HOSTINGER_ENDPOINT="$HOSTINGER_HOST"
+          else
+            HOSTINGER_ENDPOINT="[$HOSTINGER_HOST]:$HOSTINGER_SSH_PORT"
           fi
-          if ! ssh-keygen -F "$HOSTINGER_ENDPOINT" -f "$HOME/.ssh/known_hosts" >/dev/null; then
+          if ssh-keygen -F "$HOSTINGER_ENDPOINT" -f "$HOME/.ssh/known_hosts" >/dev/null; then
+            HOSTINGER_HOST_KEY_ALIAS="$HOSTINGER_ENDPOINT"
+          elif ssh-keygen -F "$HOSTINGER_HOST" -f "$HOME/.ssh/known_hosts" >/dev/null; then
+            HOSTINGER_HOST_KEY_ALIAS="$HOSTINGER_HOST"
+          else
             echo "::error::HOSTINGER_KNOWN_HOSTS must pin $HOSTINGER_ENDPOINT or the bare HOSTINGER_HOST."
             exit 1
           fi
+          printf 'HOSTINGER_HOST_KEY_ALIAS=%s\n' "$HOSTINGER_HOST_KEY_ALIAS" >> "$GITHUB_ENV"
 
       - name: Upload and activate release
         env:
@@ -165,8 +157,8 @@ jobs:
           REMOTE_ARCHIVE="hostinger-release-${RELEASE_ID}.tar.gz"
           printf -v APP_PATH_ARG '%q' "$HOSTINGER_APP_PATH"
           printf -v PUBLIC_PATH_ARG '%q' "$HOSTINGER_PUBLIC_PATH"
-          SSH_OPTIONS=(-p "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" -o BatchMode=yes -o StrictHostKeyChecking=yes)
-          SCP_OPTIONS=(-P "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" -o BatchMode=yes -o StrictHostKeyChecking=yes)
+          SSH_OPTIONS=(-p "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" -o BatchMode=yes -o StrictHostKeyChecking=yes -o "HostKeyAlias=$HOSTINGER_HOST_KEY_ALIAS")
+          SCP_OPTIONS=(-P "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" -o BatchMode=yes -o StrictHostKeyChecking=yes -o "HostKeyAlias=$HOSTINGER_HOST_KEY_ALIAS")
 
           scp "${SCP_OPTIONS[@]}" release.tar.gz "$HOSTINGER_USER@$HOSTINGER_HOST:$REMOTE_ARCHIVE"
 
