@@ -36,3 +36,188 @@ jobs:
 
       - name: Run CI Checks
         run: composer ci:check
+
+  deploy:
+    name: Deploy to Hostinger
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    concurrency:
+      group: hostinger-production
+      cancel-in-progress: false
+
+    steps:
+      - name: Validate deployment configuration
+        env:
+          HOSTINGER_HOST: ${{ vars.HOSTINGER_HOST }}
+          HOSTINGER_USER: ${{ vars.HOSTINGER_USER }}
+          HOSTINGER_SSH_PORT: ${{ vars.HOSTINGER_SSH_PORT }}
+          HOSTINGER_APP_PATH: ${{ vars.HOSTINGER_APP_PATH }}
+          HOSTINGER_PUBLIC_PATH: ${{ vars.HOSTINGER_PUBLIC_PATH }}
+          HOSTINGER_SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          HOSTINGER_KNOWN_HOSTS: ${{ secrets.HOSTINGER_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          for name in HOSTINGER_HOST HOSTINGER_USER HOSTINGER_SSH_PORT HOSTINGER_APP_PATH HOSTINGER_PUBLIC_PATH HOSTINGER_SSH_KEY HOSTINGER_KNOWN_HOSTS; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Set the GitHub variable or secret $name before deploying."
+              exit 1
+            fi
+          done
+          if [[ ! "$HOSTINGER_SSH_PORT" =~ ^[0-9]+$ ]]; then
+            echo "::error::HOSTINGER_SSH_PORT must be a numeric SSH port."
+            exit 1
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          extensions: bcmath, curl, dom, fileinfo, gd, gmp, intl, mbstring, pdo_mysql, xml, zip
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Build production release
+        run: |
+          set -euo pipefail
+          composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+          npm ci
+          npm run build
+          git archive --format=tar --output=release.tar HEAD
+          tar -rf release.tar vendor public bootstrap/cache
+          for path in resources/js/actions resources/js/routes resources/js/wayfinder; do
+            if [ -d "$path" ]; then
+              tar -rf release.tar "$path"
+            fi
+          done
+          gzip release.tar
+
+      - name: Configure SSH
+        env:
+          HOSTINGER_SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          HOSTINGER_KNOWN_HOSTS: ${{ secrets.HOSTINGER_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$HOSTINGER_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$HOSTINGER_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Upload and activate release
+        env:
+          HOSTINGER_HOST: ${{ vars.HOSTINGER_HOST }}
+          HOSTINGER_USER: ${{ vars.HOSTINGER_USER }}
+          HOSTINGER_SSH_PORT: ${{ vars.HOSTINGER_SSH_PORT }}
+          HOSTINGER_APP_PATH: ${{ vars.HOSTINGER_APP_PATH }}
+          HOSTINGER_PUBLIC_PATH: ${{ vars.HOSTINGER_PUBLIC_PATH }}
+        run: |
+          set -euo pipefail
+
+          for path in "$HOSTINGER_APP_PATH" "$HOSTINGER_PUBLIC_PATH"; do
+            if [[ ! "$path" =~ ^/[A-Za-z0-9._/-]+$ || "/$path/" == *"/../"* ]]; then
+              echo "::error::Deployment paths must be absolute paths without spaces or '..' segments."
+              exit 1
+            fi
+          done
+
+          RELEASE_ID="${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          REMOTE_ARCHIVE="hostinger-release-${RELEASE_ID}.tar.gz"
+          SSH_OPTIONS=(-p "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" -o BatchMode=yes -o StrictHostKeyChecking=yes)
+
+          scp "${SSH_OPTIONS[@]}" release.tar.gz "$HOSTINGER_USER@$HOSTINGER_HOST:$REMOTE_ARCHIVE"
+
+          ssh "${SSH_OPTIONS[@]}" "$HOSTINGER_USER@$HOSTINGER_HOST" \
+            "bash -s -- '$HOSTINGER_APP_PATH' '$HOSTINGER_PUBLIC_PATH' '$RELEASE_ID' '$REMOTE_ARCHIVE'" <<'REMOTE'
+          set -euo pipefail
+          APP_PATH="$1"
+          PUBLIC_PATH="$2"
+          RELEASE_ID="$3"
+          ARCHIVE="$HOME/$4"
+
+          case "$APP_PATH/" in "$PUBLIC_PATH/"*) echo "Application path must be outside the public directory." >&2; exit 1 ;; esac
+          case "$PUBLIC_PATH/" in "$APP_PATH/"*) echo "Public directory must be outside the application path." >&2; exit 1 ;; esac
+          test "$APP_PATH" != "$PUBLIC_PATH"
+          test -f "$APP_PATH/shared/.env" || { echo "Missing $APP_PATH/shared/.env; create the production .env file first." >&2; exit 1; }
+          if [ -e "$PUBLIC_PATH/storage" ] && [ ! -L "$PUBLIC_PATH/storage" ]; then
+            echo "$PUBLIC_PATH/storage exists and is not a symlink; move its contents before deploying." >&2
+            exit 1
+          fi
+          php -r 'if (PHP_VERSION_ID < 80300) { fwrite(STDERR, "PHP 8.3 or later is required.\n"); exit(1); }'
+
+          RELEASES_PATH="$APP_PATH/releases"
+          RELEASE_PATH="$RELEASES_PATH/$RELEASE_ID"
+          mkdir -p "$RELEASES_PATH" "$APP_PATH/shared/storage"
+          mkdir -p "$RELEASE_PATH"
+          tar -xzf "$ARCHIVE" -C "$RELEASE_PATH"
+          rm -f -- "$ARCHIVE"
+
+          mkdir -p \
+            "$APP_PATH/shared/storage/app/public" \
+            "$APP_PATH/shared/storage/framework/cache/data" \
+            "$APP_PATH/shared/storage/framework/sessions" \
+            "$APP_PATH/shared/storage/framework/views" \
+            "$APP_PATH/shared/storage/logs"
+          ln -s "$APP_PATH/shared/.env" "$RELEASE_PATH/.env"
+          ln -s "$APP_PATH/shared/storage" "$RELEASE_PATH/storage"
+
+          if ! grep -Eq '^APP_KEY=.+$' "$APP_PATH/shared/.env"; then
+            php "$RELEASE_PATH/artisan" key:generate --force
+          fi
+          php "$RELEASE_PATH/artisan" migrate --force --no-interaction
+          php "$RELEASE_PATH/artisan" optimize:clear
+          php "$RELEASE_PATH/artisan" config:cache
+          php "$RELEASE_PATH/artisan" view:cache
+
+          mkdir -p "$PUBLIC_PATH"
+          find "$RELEASE_PATH/public" -mindepth 1 -maxdepth 1 ! -name index.php ! -name storage \
+            -exec cp -a {} "$PUBLIC_PATH/" \;
+
+          ln -s "$RELEASE_PATH" "$APP_PATH/current-$RELEASE_ID"
+          mv -Tf "$APP_PATH/current-$RELEASE_ID" "$APP_PATH/current"
+
+          if [ -L "$PUBLIC_PATH/storage" ]; then
+            rm -f -- "$PUBLIC_PATH/storage"
+          fi
+          ln -s "$APP_PATH/shared/storage/app/public" "$PUBLIC_PATH/storage"
+
+          cat > "$PUBLIC_PATH/index.php" <<PHP
+          <?php
+
+          use Illuminate\Foundation\Application;
+          use Illuminate\Http\Request;
+
+          define('LARAVEL_START', microtime(true));
+
+          if (file_exists(\$maintenance = '$APP_PATH/current/storage/framework/maintenance.php')) {
+              require \$maintenance;
+          }
+
+          require '$APP_PATH/current/vendor/autoload.php';
+
+          /** @var Application \$app */
+          \$app = require_once '$APP_PATH/current/bootstrap/app.php';
+
+          \$app->handleRequest(Request::capture());
+          PHP
+
+          find "$RELEASES_PATH" -mindepth 1 -maxdepth 1 -type d ! -path "$RELEASE_PATH" -printf '%T@ %p\n' \
+            | sort -nr \
+            | tail -n +5 \
+            | cut -d' ' -f2- \
+            | while IFS= read -r old_release; do
+                if [ -n "$old_release" ]; then
+                  rm -rf -- "$old_release"
+                fi
+              done
+          REMOTE
