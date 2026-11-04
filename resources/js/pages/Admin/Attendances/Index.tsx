@@ -33,7 +33,8 @@ export default function Index({ employees, date, departments }: Props) {
 
     // Notifikasi
     useEffect(() => {
-        if (flash?.success) toast.success('Berhasil', { description: flash.success });
+        if (flash?.success)
+            toast.success('Berhasil', { description: flash.success });
         if (flash?.error) toast.error('Gagal', { description: flash.error });
     }, [flash]);
 
@@ -77,7 +78,9 @@ export default function Index({ employees, date, departments }: Props) {
                 emp.full_name.toLowerCase().includes(search.toLowerCase()) ||
                 emp.employee_code.toLowerCase().includes(search.toLowerCase());
 
-            const matchDept = selectedDepartment ? emp.department === selectedDepartment : true;
+            const matchDept = selectedDepartment
+                ? emp.department === selectedDepartment
+                : true;
 
             return matchSearch && matchDept;
         });
@@ -87,39 +90,48 @@ export default function Index({ employees, date, departments }: Props) {
         <>
             <Head title="Input Absensi" />
             <div className="py-8">
-                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white shadow-sm sm:rounded-lg p-6">
-
+                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                    <div className="bg-white p-6 shadow-sm sm:rounded-lg">
                         {/* Header & Filter Tanggal */}
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="font-semibold text-xl text-gray-800">Input Absensi Harian</h2>
-                            <form method="GET" action="/admin/attendances" className="flex items-center space-x-2">
-                                <label className="text-sm font-medium text-gray-700">Tanggal:</label>
+                        <div className="mb-6 flex items-center justify-between">
+                            <h2 className="text-xl font-semibold text-gray-800">
+                                Input Absensi Harian
+                            </h2>
+                            <form
+                                method="GET"
+                                action="/admin/attendances"
+                                className="flex items-center space-x-2"
+                            >
+                                <label className="text-sm font-medium text-gray-700">
+                                    Tanggal:
+                                </label>
                                 <input
                                     type="date"
                                     name="date"
                                     defaultValue={date}
-                                    className="border p-2 rounded text-sm"
+                                    className="rounded border p-2 text-sm"
                                     onChange={(e) => e.target.form?.submit()}
                                 />
                             </form>
                         </div>
 
                         {/* Filter Search & Departemen */}
-                        <div className="flex flex-col md:flex-row gap-4 mb-6">
+                        <div className="mb-6 flex flex-col gap-4 md:flex-row">
                             <input
                                 type="text"
                                 placeholder="Cari Kode atau Nama Karyawan..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="border p-2 rounded w-full md:w-1/3 text-sm"
+                                className="w-full rounded border p-2 text-sm md:w-1/3"
                             />
 
                             {/* GANTI BAGIAN SELECT INI SEMENTARA */}
                             <select
                                 value={selectedDepartment}
-                                onChange={(e) => setSelectedDepartment(e.target.value)}
-                                className="border p-2 rounded w-full md:w-1/4 text-sm"
+                                onChange={(e) =>
+                                    setSelectedDepartment(e.target.value)
+                                }
+                                className="w-full rounded border p-2 text-sm md:w-1/4"
                             >
                                 <option value="">Semua Departemen</option>
                                 {/* Gunakan data dinamis dari backend */}
@@ -131,66 +143,141 @@ export default function Index({ employees, date, departments }: Props) {
                             </select>
                         </div>
 
-                        {processing && <div className="mb-4 text-blue-500">Menyimpan data...</div>}
+                        {processing && (
+                            <div className="mb-4 text-blue-500">
+                                Menyimpan data...
+                            </div>
+                        )}
 
                         <form onSubmit={submit}>
                             <div className="overflow-x-auto">
-                                <table className="w-full text-left border-collapse">
+                                <table className="w-full border-collapse text-left">
                                     <thead>
                                         <tr className="border-b bg-gray-50">
-                                            <th className="py-2 px-3 border-r text-sm">Kode</th>
-                                            <th className="py-2 px-3 border-r text-sm">Nama Karyawan</th>
-                                            <th className="py-2 px-3 border-r text-sm">Departemen</th>
-                                            <th className="py-2 px-3 border-r text-sm w-32">Status</th>
-                                            <th className="py-2 px-3 border-r text-sm w-28">Jam Masuk</th>
-                                            <th className="py-2 px-3 border-r text-sm w-28">Jam Keluar</th>
-                                            <th className="py-2 px-3 text-sm">Keterangan</th>
+                                            <th className="border-r px-3 py-2 text-sm">
+                                                Kode
+                                            </th>
+                                            <th className="border-r px-3 py-2 text-sm">
+                                                Nama Karyawan
+                                            </th>
+                                            <th className="border-r px-3 py-2 text-sm">
+                                                Departemen
+                                            </th>
+                                            <th className="w-32 border-r px-3 py-2 text-sm">
+                                                Status
+                                            </th>
+                                            <th className="w-28 border-r px-3 py-2 text-sm">
+                                                Jam Masuk
+                                            </th>
+                                            <th className="w-28 border-r px-3 py-2 text-sm">
+                                                Jam Keluar
+                                            </th>
+                                            <th className="px-3 py-2 text-sm">
+                                                Keterangan
+                                            </th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {filteredEmployees.map((emp) => (
-                                            <tr key={emp.id} className="border-b hover:bg-gray-50">
-                                                <td className="py-1 px-3 border-r text-sm">{emp.employee_code}</td>
-                                                <td className="py-1 px-3 border-r text-sm font-medium">{emp.full_name}</td>
-                                                <td className="py-1 px-3 border-r text-sm">{emp.department || '-'}</td>
+                                            <tr
+                                                key={emp.id}
+                                                className="border-b hover:bg-gray-50"
+                                            >
+                                                <td className="border-r px-3 py-1 text-sm">
+                                                    {emp.employee_code}
+                                                </td>
+                                                <td className="border-r px-3 py-1 text-sm font-medium">
+                                                    {emp.full_name}
+                                                </td>
+                                                <td className="border-r px-3 py-1 text-sm">
+                                                    {emp.department || '-'}
+                                                </td>
 
-                                                <td className="py-1 px-3 border-r">
+                                                <td className="border-r px-3 py-1">
                                                     <select
-                                                        value={data.attendances[emp.id]?.status}
-                                                        onChange={(e) => updateAttendance(emp.id, 'status', e.target.value)}
-                                                        className="w-full border p-1 rounded text-sm"
+                                                        value={
+                                                            data.attendances[
+                                                                emp.id
+                                                            ]?.status
+                                                        }
+                                                        onChange={(e) =>
+                                                            updateAttendance(
+                                                                emp.id,
+                                                                'status',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        className="w-full rounded border p-1 text-sm"
                                                     >
-                                                        <option value="present">Hadir</option>
-                                                        <option value="sick">Sakit</option>
-                                                        <option value="leave">Cuti</option>
-                                                        <option value="absent">Alpa</option>
+                                                        <option value="present">
+                                                            Hadir
+                                                        </option>
+                                                        <option value="sick">
+                                                            Sakit
+                                                        </option>
+                                                        <option value="leave">
+                                                            Cuti
+                                                        </option>
+                                                        <option value="absent">
+                                                            Alpa
+                                                        </option>
                                                     </select>
                                                 </td>
 
-                                                <td className="py-1 px-3 border-r">
+                                                <td className="border-r px-3 py-1">
                                                     <input
                                                         type="time"
-                                                        value={data.attendances[emp.id]?.check_in}
-                                                        onChange={(e) => updateAttendance(emp.id, 'check_in', e.target.value)}
-                                                        className="w-full border p-1 rounded text-sm"
+                                                        value={
+                                                            data.attendances[
+                                                                emp.id
+                                                            ]?.check_in
+                                                        }
+                                                        onChange={(e) =>
+                                                            updateAttendance(
+                                                                emp.id,
+                                                                'check_in',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        className="w-full rounded border p-1 text-sm"
                                                     />
                                                 </td>
 
-                                                <td className="py-1 px-3 border-r">
+                                                <td className="border-r px-3 py-1">
                                                     <input
                                                         type="time"
-                                                        value={data.attendances[emp.id]?.check_out}
-                                                        onChange={(e) => updateAttendance(emp.id, 'check_out', e.target.value)}
-                                                        className="w-full border p-1 rounded text-sm"
+                                                        value={
+                                                            data.attendances[
+                                                                emp.id
+                                                            ]?.check_out
+                                                        }
+                                                        onChange={(e) =>
+                                                            updateAttendance(
+                                                                emp.id,
+                                                                'check_out',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        className="w-full rounded border p-1 text-sm"
                                                     />
                                                 </td>
 
-                                                <td className="py-1 px-3">
+                                                <td className="px-3 py-1">
                                                     <input
                                                         type="text"
-                                                        value={data.attendances[emp.id]?.notes}
-                                                        onChange={(e) => updateAttendance(emp.id, 'notes', e.target.value)}
-                                                        className="w-full border p-1 rounded text-sm"
+                                                        value={
+                                                            data.attendances[
+                                                                emp.id
+                                                            ]?.notes
+                                                        }
+                                                        onChange={(e) =>
+                                                            updateAttendance(
+                                                                emp.id,
+                                                                'notes',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        className="w-full rounded border p-1 text-sm"
                                                         placeholder="Opsional..."
                                                     />
                                                 </td>
@@ -198,8 +285,12 @@ export default function Index({ employees, date, departments }: Props) {
                                         ))}
                                         {filteredEmployees.length === 0 && (
                                             <tr>
-                                                <td colSpan={7} className="text-center py-4 text-gray-500">
-                                                    Tidak ada karyawan yang sesuai dengan filter.
+                                                <td
+                                                    colSpan={7}
+                                                    className="py-4 text-center text-gray-500"
+                                                >
+                                                    Tidak ada karyawan yang
+                                                    sesuai dengan filter.
                                                 </td>
                                             </tr>
                                         )}
@@ -207,13 +298,15 @@ export default function Index({ employees, date, departments }: Props) {
                                 </table>
                             </div>
 
-                            <div className="flex justify-end mt-6">
+                            <div className="mt-6 flex justify-end">
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm disabled:opacity-50"
+                                    className="rounded-md bg-blue-600 px-6 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50"
                                 >
-                                    {processing ? 'Menyimpan...' : 'Simpan Absensi'}
+                                    {processing
+                                        ? 'Menyimpan...'
+                                        : 'Simpan Absensi'}
                                 </button>
                             </div>
                         </form>
