@@ -125,20 +125,24 @@ jobs:
           set -euo pipefail
 
           for path in "$HOSTINGER_APP_PATH" "$HOSTINGER_PUBLIC_PATH"; do
-            if [[ ! "$path" =~ ^/[A-Za-z0-9._/-]+$ || "/$path/" == *"/../"* ]]; then
-              echo "::error::Deployment paths must be absolute paths without spaces or '..' segments."
+            if [[ "$path" != /* || "$path" == *"/../"* || "$path" == */.. ]]; then
+              echo "::error::Deployment paths must be absolute paths without '..' segments."
               exit 1
             fi
           done
 
           RELEASE_ID="${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           REMOTE_ARCHIVE="hostinger-release-${RELEASE_ID}.tar.gz"
+          printf -v APP_PATH_ARG '%q' "$HOSTINGER_APP_PATH"
+          printf -v PUBLIC_PATH_ARG '%q' "$HOSTINGER_PUBLIC_PATH"
           SSH_OPTIONS=(-p "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" -o BatchMode=yes -o StrictHostKeyChecking=yes)
 
           scp "${SSH_OPTIONS[@]}" release.tar.gz "$HOSTINGER_USER@$HOSTINGER_HOST:$REMOTE_ARCHIVE"
 
+          # The path arguments are Bash-escaped for the remote command above.
+          # shellcheck disable=SC2029
           ssh "${SSH_OPTIONS[@]}" "$HOSTINGER_USER@$HOSTINGER_HOST" \
-            "bash -s -- '$HOSTINGER_APP_PATH' '$HOSTINGER_PUBLIC_PATH' '$RELEASE_ID' '$REMOTE_ARCHIVE'" <<'REMOTE'
+            "bash -s -- $APP_PATH_ARG $PUBLIC_PATH_ARG '$RELEASE_ID' '$REMOTE_ARCHIVE'" <<'REMOTE'
           set -euo pipefail
           APP_PATH="$1"
           PUBLIC_PATH="$2"
