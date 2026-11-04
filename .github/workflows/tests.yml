@@ -68,6 +68,13 @@ jobs:
             echo "::error::HOSTINGER_SSH_PORT must be a numeric SSH port."
             exit 1
           fi
+          HOSTINGER_USER="${HOSTINGER_USER#"${HOSTINGER_USER%%[![:space:]]*}"}"
+          HOSTINGER_USER="${HOSTINGER_USER%"${HOSTINGER_USER##*[![:space:]]}"}"
+          if [[ ! "$HOSTINGER_USER" =~ ^[a-zA-Z0-9._-]+$ ]]; then
+            echo "::error::HOSTINGER_USER must be a valid SSH username."
+            exit 1
+          fi
+          printf 'HOSTINGER_USER=%s\n' "$HOSTINGER_USER" >> "$GITHUB_ENV"
 
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -117,7 +124,6 @@ jobs:
       - name: Upload and activate release
         env:
           HOSTINGER_HOST: ${{ vars.HOSTINGER_HOST }}
-          HOSTINGER_USER: ${{ vars.HOSTINGER_USER }}
           HOSTINGER_SSH_PORT: ${{ vars.HOSTINGER_SSH_PORT }}
           HOSTINGER_APP_PATH: ${{ vars.HOSTINGER_APP_PATH }}
           HOSTINGER_PUBLIC_PATH: ${{ vars.HOSTINGER_PUBLIC_PATH }}
