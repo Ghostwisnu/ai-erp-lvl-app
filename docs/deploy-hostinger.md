@@ -16,42 +16,43 @@ on the server between deployments.
 3. Create a private application directory outside the website's public
    directory. For example:
 
-   ```text
-   /home/USER/domains/DOMAIN/laravel-app
-   ```
+    ```text
+    /home/USER/domains/DOMAIN/laravel-app
+    ```
 
-   The website's public directory is commonly:
+    The website's public directory is commonly:
 
-   ```text
-   /home/USER/domains/DOMAIN/public_html
-   ```
+    ```text
+    /home/USER/domains/DOMAIN/public_html
+    ```
 
-   Use the actual absolute paths shown by your Hostinger account. The application
-   directory and public directory must not contain one another.
+    Use the actual absolute paths shown by your Hostinger account. The application
+    directory and public directory must not contain one another.
+
 4. Create the shared directory, then create the production environment file at
    `<application-directory>/shared/.env` using hPanel File Manager or SSH:
 
-   ```sh
-   mkdir -p /home/USER/domains/DOMAIN/laravel-app/shared
-   ```
+    ```sh
+    mkdir -p /home/USER/domains/DOMAIN/laravel-app/shared
+    ```
 
-   Configure at least:
+    Configure at least:
 
-   ```dotenv
-   APP_ENV=production
-   APP_DEBUG=false
-   APP_URL=https://your-domain.example
-   DB_CONNECTION=mysql
-   DB_HOST=your-hostinger-database-host
-   DB_PORT=3306
-   DB_DATABASE=your-database
-   DB_USERNAME=your-database-user
-   DB_PASSWORD=your-database-password
-   ```
+    ```dotenv
+    APP_ENV=production
+    APP_DEBUG=false
+    APP_URL=https://your-domain.example
+    DB_CONNECTION=mysql
+    DB_HOST=your-hostinger-database-host
+    DB_PORT=3306
+    DB_DATABASE=your-database
+    DB_USERNAME=your-database-user
+    DB_PASSWORD=your-database-password
+    ```
 
-   Create the MySQL database and user in hPanel first. Do not commit this file
-   or put its values in GitHub variables. If `APP_KEY` is empty, the first
-   successful deployment generates it and retains it in this file.
+    Create the MySQL database and user in hPanel first. Do not commit this file
+    or put its values in GitHub variables. If `APP_KEY` is empty, the first
+    successful deployment generates it and retains it in this file.
 
 The workflow uses SSH rather than hPanel's file-only Git deployment because it
 must build the Vite assets, install Composer dependencies, and run Laravel
@@ -62,20 +63,20 @@ commands. See [Hostinger's Git deployment documentation](https://docs.hostinger.
 In the repository's **Settings → Secrets and variables → Actions**, add these
 repository variables:
 
-| Variable | Value |
-| --- | --- |
-| `HOSTINGER_HOST` | SSH host or IP shown in hPanel |
-| `HOSTINGER_USER` | SSH username shown in hPanel |
-| `HOSTINGER_SSH_PORT` | SSH port shown in hPanel |
-| `HOSTINGER_APP_PATH` | Absolute private application directory |
-| `HOSTINGER_PUBLIC_PATH` | Absolute website public directory |
+| Variable                | Value                                  |
+| ----------------------- | -------------------------------------- |
+| `HOSTINGER_HOST`        | SSH host or IP shown in hPanel         |
+| `HOSTINGER_USER`        | SSH username shown in hPanel           |
+| `HOSTINGER_SSH_PORT`    | SSH port shown in hPanel               |
+| `HOSTINGER_APP_PATH`    | Absolute private application directory |
+| `HOSTINGER_PUBLIC_PATH` | Absolute website public directory      |
 
 Add these repository secrets:
 
-| Secret | Value |
-| --- | --- |
-| `HOSTINGER_SSH_KEY` | Private key corresponding to the public key added in hPanel |
-| `HOSTINGER_KNOWN_HOSTS` | Verified SSH host-key line for the Hostinger SSH server |
+| Secret                  | Value                                                       |
+| ----------------------- | ----------------------------------------------------------- |
+| `HOSTINGER_SSH_KEY`     | Private key corresponding to the public key added in hPanel |
+| `HOSTINGER_KNOWN_HOSTS` | Verified SSH host-key line for the Hostinger SSH server     |
 
 Verify the SSH server fingerprint before saving its host key; do not disable SSH
 host-key verification. Never share or commit the private key or production

@@ -10,10 +10,7 @@ export function AppShell({ variant = 'sidebar', children, ...props }: Props) {
     if (variant === 'sidebar') {
         return (
             <SidebarProvider>
-                <div
-                    className="flex h-svh w-full overflow-hidden"
-                    {...props}
-                >
+                <div className="flex h-svh w-full overflow-hidden" {...props}>
                     {children}
                 </div>
             </SidebarProvider>

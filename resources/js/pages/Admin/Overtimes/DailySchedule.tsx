@@ -15,24 +15,33 @@ export default function DailySchedule({ overtimes = [], date }: any) {
     return (
         <>
             <Head title="Jadwal Lembur Harian" />
-            <div className="py-8 max-w-7xl mx-auto sm:px-6 lg:px-8 min-h-screen">
-
+            <div className="mx-auto min-h-screen max-w-7xl py-8 sm:px-6 lg:px-8">
                 {/* Header & Filter Tanggal */}
-                <div className="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-4 rounded-lg shadow-sm border">
+                <div className="mb-8 flex flex-col items-center justify-between rounded-lg border bg-white p-4 shadow-sm md:flex-row">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800">📋 Jadwal Lembur Harian</h1>
-                        <p className="text-gray-500 text-sm mt-1">Daftar pengumuman lembur karyawan berdasarkan tanggal.</p>
+                        <h1 className="text-2xl font-bold text-gray-800">
+                            📋 Jadwal Lembur Harian
+                        </h1>
+                        <p className="mt-1 text-sm text-gray-500">
+                            Daftar pengumuman lembur karyawan berdasarkan
+                            tanggal.
+                        </p>
                     </div>
 
-                    <div className="flex items-center gap-3 mt-4 md:mt-0">
-                        <label className="text-sm font-medium text-gray-700">Pilih Tanggal:</label>
+                    <div className="mt-4 flex items-center gap-3 md:mt-0">
+                        <label className="text-sm font-medium text-gray-700">
+                            Pilih Tanggal:
+                        </label>
                         <input
                             type="date"
                             value={selectedDate}
                             onChange={handleDateChange}
-                            className="border p-2 rounded-md text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                            className="rounded-md border p-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
                         />
-                        <Link href="/admin/overtimes" className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm ml-2 transition">
+                        <Link
+                            href="/admin/overtimes"
+                            className="ml-2 rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-200"
+                        >
                             Lihat Semua Data
                         </Link>
                     </div>
@@ -40,39 +49,63 @@ export default function DailySchedule({ overtimes = [], date }: any) {
 
                 {/* Daftar Kartu Pengumuman */}
                 {overtimes.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {overtimes.map((ot: any) => (
-                            <div key={ot.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow duration-300 flex flex-col">
+                            <div
+                                key={ot.id}
+                                className="flex flex-col overflow-hidden rounded-xl border border-gray-100 bg-white shadow-md transition-shadow duration-300 hover:shadow-lg"
+                            >
                                 {/* Header Kartu */}
                                 <div className="bg-blue-600 p-4 text-white">
-                                    <h3 className="font-bold text-lg">{ot.department}</h3>
-                                    <p className="text-blue-100 text-sm mt-1">PIC: {ot.pic}</p>
+                                    <h3 className="text-lg font-bold">
+                                        {ot.department}
+                                    </h3>
+                                    <p className="mt-1 text-sm text-blue-100">
+                                        PIC: {ot.pic}
+                                    </p>
                                 </div>
 
                                 {/* Body Kartu */}
-                                <div className="p-4 flex-1">
+                                <div className="flex-1 p-4">
                                     <div className="mb-4">
-                                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Tujuan Lembur</span>
-                                        <p className="text-gray-800 font-medium mt-1">{ot.purpose}</p>
+                                        <span className="text-xs font-semibold tracking-wider text-gray-500 uppercase">
+                                            Tujuan Lembur
+                                        </span>
+                                        <p className="mt-1 font-medium text-gray-800">
+                                            {ot.purpose}
+                                        </p>
                                     </div>
 
-                                    <div className="mb-2 flex justify-between items-center border-b pb-2">
-                                        <span className="text-sm font-semibold text-gray-700">Daftar Peserta ({ot.employees.length} Orang)</span>
+                                    <div className="mb-2 flex items-center justify-between border-b pb-2">
+                                        <span className="text-sm font-semibold text-gray-700">
+                                            Daftar Peserta (
+                                            {ot.employees.length} Orang)
+                                        </span>
                                     </div>
 
-                                    <ul className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                                    <ul className="custom-scrollbar max-h-48 space-y-2 overflow-y-auto pr-2">
                                         {ot.employees.map((emp: any) => (
-                                            <li key={emp.id} className="flex justify-between items-center text-sm">
-                                                <span className="text-gray-700 truncate mr-2">{emp.full_name}</span>
-                                                <span className="font-bold text-blue-600 whitespace-nowrap">{emp.pivot.duration} Jam</span>
+                                            <li
+                                                key={emp.id}
+                                                className="flex items-center justify-between text-sm"
+                                            >
+                                                <span className="mr-2 truncate text-gray-700">
+                                                    {emp.full_name}
+                                                </span>
+                                                <span className="font-bold whitespace-nowrap text-blue-600">
+                                                    {emp.pivot.duration} Jam
+                                                </span>
                                             </li>
                                         ))}
                                     </ul>
                                 </div>
 
                                 {/* Footer Kartu */}
-                                <div className="bg-gray-50 px-4 py-3 border-t flex justify-end mt-auto">
-                                    <Link href={`/admin/overtimes/${ot.id}`} className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                                <div className="mt-auto flex justify-end border-t bg-gray-50 px-4 py-3">
+                                    <Link
+                                        href={`/admin/overtimes/${ot.id}`}
+                                        className="text-sm font-medium text-blue-600 hover:text-blue-800"
+                                    >
                                         Lihat Detail &rarr;
                                     </Link>
                                 </div>
@@ -80,11 +113,18 @@ export default function DailySchedule({ overtimes = [], date }: any) {
                         ))}
                     </div>
                 ) : (
-                    <div className="bg-white rounded-xl shadow-sm border p-12 text-center">
-                        <div className="text-6xl mb-4">📭</div>
-                        <h3 className="text-xl font-bold text-gray-700 mb-2">Belum Ada Jadwal Lembur</h3>
-                        <p className="text-gray-500">Tidak ada form lembur yang dibuat pada tanggal ini.</p>
-                        <Link href="/admin/overtimes/create" className="inline-block mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition">
+                    <div className="rounded-xl border bg-white p-12 text-center shadow-sm">
+                        <div className="mb-4 text-6xl">📭</div>
+                        <h3 className="mb-2 text-xl font-bold text-gray-700">
+                            Belum Ada Jadwal Lembur
+                        </h3>
+                        <p className="text-gray-500">
+                            Tidak ada form lembur yang dibuat pada tanggal ini.
+                        </p>
+                        <Link
+                            href="/admin/overtimes/create"
+                            className="mt-6 inline-block rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition hover:bg-blue-700"
+                        >
                             + Buat Form Lembur
                         </Link>
                     </div>
