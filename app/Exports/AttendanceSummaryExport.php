@@ -4,7 +4,7 @@ namespace App\Exports;
 
 use App\Models\Employee;
 use App\Models\Holiday;
-use App\Models\Overtime;
+use App\Models\OvertimeEmployee;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -26,6 +26,7 @@ class AttendanceSummaryExport implements FromCollection, WithHeadings
         $this->endDate = Carbon::createFromDate($year, $month, 25);
     }
 
+    /** @return Collection<int, array{string, string, string, int, float, float}> */
     public function collection(): Collection
     {
         $employees = Employee::query()
@@ -50,28 +51,24 @@ class AttendanceSummaryExport implements FromCollection, WithHeadings
             ->when($this->department, fn ($query) => $query->where('department', $this->department))
             ->when($this->search, fn ($query) => $query->where(function ($employeeQuery) {
                 $employeeQuery
-                    ->where('full_name', 'like', '%' . $this->search . '%')
-                    ->orWhere('employee_code', 'like', '%' . $this->search . '%');
+                    ->where('full_name', 'like', '%'.$this->search.'%')
+                    ->orWhere('employee_code', 'like', '%'.$this->search.'%');
             }))
             ->orderBy('full_name')
             ->get();
 
         $holidayDates = Holiday::query()
-            ->whereBetween('date', [$this->startDate->toDateString(), $this->endDate->toDateString()])
+            ->whereBetween('holidays.date', [$this->startDate->toDateString(), $this->endDate->toDateString()])
             ->pluck('date')
             ->map(fn ($date) => Carbon::parse($date)->toDateString())
             ->flip();
 
-        $overtimeHours = Overtime::query()
+        $overtimeHours = OvertimeEmployee::query()
+            ->join('overtimes', 'overtimes.id', '=', 'overtime_employees.overtime_id')
             ->whereBetween('date', [$this->startDate->toDateString(), $this->endDate->toDateString()])
-            ->with(['employees' => fn ($query) => $query->withPivot('duration')])
-            ->get()
-            ->flatMap(fn ($overtime) => $overtime->employees->map(fn ($employee) => [
-                'employee_id' => $employee->id,
-                'duration' => (float) $employee->pivot->duration,
-            ]))
-            ->groupBy('employee_id')
-            ->map(fn ($entries) => $entries->sum('duration'));
+            ->selectRaw('overtime_employees.employee_id, SUM(overtime_employees.duration) as hours')
+            ->groupBy('overtime_employees.employee_id')
+            ->pluck('hours', 'employee_id');
 
         return $employees->map(function (Employee $employee) use ($holidayDates, $overtimeHours) {
             $attendanceMap = $employee->attendances->keyBy(
@@ -111,10 +108,10 @@ class AttendanceSummaryExport implements FromCollection, WithHeadings
                         ? Carbon::parse($logs->last()->scan_time)->format('H:i:s')
                         : null);
                 if ($checkIn && $checkOut) {
-                    $start = Carbon::parse($dateString . ' ' . $checkIn);
-                    $end = Carbon::parse($dateString . ' ' . $checkOut);
+                    $start = Carbon::parse($dateString.' '.$checkIn);
+                    $end = Carbon::parse($dateString.' '.$checkOut);
                     if ($end->greaterThan($start)) {
-                        $attendanceHours += $start->floatDiffInHours($end);
+                        $attendanceHours += $start->diffInHours($end);
                     }
                 }
             }

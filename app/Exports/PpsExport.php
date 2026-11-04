@@ -23,6 +23,7 @@ class PpsExport implements FromCollection, WithHeadings
 
     public function __construct(private readonly ?int $brandId = null) {}
 
+    /** @return Collection<int, array<int, int|string>> */
     public function collection(): Collection
     {
         $spks = Spk::query()
@@ -72,24 +73,25 @@ class PpsExport implements FromCollection, WithHeadings
                 $row = [
                     $rowNumber++,
                     $productionRow['po'],
-                    $spk->brand?->name ?? '-',
+                    $spk->brand->name ?? '-',
                     $spk->art_color,
                     $productionRow['qty'],
                 ];
+                $departmentRows = [];
 
                 foreach (array_keys(self::DEPARTMENTS) as $department) {
                     $track = $productionRow['tracks']->firstWhere('department', $department);
                     $dailyEntries = $productionRow['dailies']->where('department', $department);
 
                     if ($department === 'finishing') {
-                        $totalOutput = $productionRow['sizes']
+                        $totalOutput = (int) $productionRow['sizes']
                             ->filter(fn ($size) => (int) data_get($size, 'qty') > 0)
                             ->sum(fn ($size) => $scanResults[$spk->id][data_get($size, 'size_name')] ?? 0);
                         $latestOutput = '-';
                     } else {
                         $totalOutput = (int) $dailyEntries->sum('qty');
                         $latestDaily = $dailyEntries->sortByDesc('report_date')->first();
-                        $latestOutput = $latestDaily?->qty ?? '-';
+                        $latestOutput = $latestDaily->qty ?? '-';
                     }
 
                     $startDate = $track?->start_date;
@@ -97,18 +99,41 @@ class PpsExport implements FromCollection, WithHeadings
                         $startDate = $spk->start_date;
                     }
 
-                    $row[] = $startDate ? Carbon::parse($startDate)->format('d/m/Y') : '-';
-                    $row[] = $latestOutput;
-                    $row[] = $totalOutput;
-                    $row[] = $productionRow['qty'] - $totalOutput;
+                    $departmentRows[] = [
+                        $startDate ? Carbon::parse($startDate)->format('d/m/Y') : '-',
+                        $latestOutput,
+                        $totalOutput,
+                        $productionRow['qty'] - $totalOutput,
+                    ];
                 }
 
-                $row[] = $spk->xfd_date ? Carbon::parse($spk->xfd_date)->format('d/m/Y') : '-';
-                $rows[] = $row;
+                $rows[] = $this->appendDepartmentRows(
+                    $row,
+                    $departmentRows,
+                    $spk->xfd_date ? Carbon::parse($spk->xfd_date)->format('d/m/Y') : '-',
+                );
             }
         }
 
         return collect($rows);
+    }
+
+    /**
+     * @param  array<int, int|string>  $row
+     * @param  list<array<int, int|string>>  $departmentRows
+     * @return array<int, int|string>
+     */
+    private function appendDepartmentRows(array $row, array $departmentRows, string $xfdDate): array
+    {
+        foreach ($departmentRows as $departmentRow) {
+            foreach ($departmentRow as $value) {
+                $row[] = $value;
+            }
+        }
+
+        $row[] = $xfdDate;
+
+        return $row;
     }
 
     public function headings(): array

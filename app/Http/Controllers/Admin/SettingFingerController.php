@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use HafizAsifAli\ZkTeco\ZkDevice;
 use Exception;
+use HafizAsifAli\ZkTeco\ZkDevice;
+use Illuminate\Contracts\Support\Responsable;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class SettingFingerController extends BaseAdminController
 {
+    /** @return Responsable|Response */
     public function index()
     {
         return $this->renderAdminPage('Admin/SettingFinger/Index');
     }
 
+    /** @return Responsable|Response */
     public function testConnection(Request $request)
     {
         // Validasi input array IP
@@ -36,14 +38,14 @@ class SettingFingerController extends BaseAdminController
                 $results[] = [
                     'ip' => $ip,
                     'success' => true,
-                    'message' => 'Koneksi Berhasil! Mesin merespon.'
+                    'message' => 'Koneksi Berhasil! Mesin merespon.',
                 ];
             } catch (Exception $e) {
                 // Jika gagal
                 $results[] = [
                     'ip' => $ip,
                     'success' => false,
-                    'message' => 'Gagal: ' . $e->getMessage()
+                    'message' => 'Gagal: '.$e->getMessage(),
                 ];
             }
         }

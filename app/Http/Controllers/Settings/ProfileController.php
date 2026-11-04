@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Models\Menu;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -36,30 +37,37 @@ class ProfileController extends Controller
 
         $filteredMenus = $menus->map(function ($menu) use ($permissions, $isSuperAdmin) {
             $menu->setRelation('subMenus', $menu->subMenus->filter(function ($sub) use ($permissions, $isSuperAdmin) {
-                if ($isSuperAdmin) return true;
-                if (empty($sub->permission_name)) return true;
+                if ($isSuperAdmin) {
+                    return true;
+                }
+                if (empty($sub->permission_name)) {
+                    return true;
+                }
+
                 return in_array($sub->permission_name, $permissions);
             })->values());
+
             return $menu;
         })->filter(function ($menu) use ($permissions, $isSuperAdmin) {
-            if (!$isSuperAdmin && !empty($menu->permission_name) && !in_array($menu->permission_name, $permissions)) {
+            if (! $isSuperAdmin && ! empty($menu->permission_name) && ! in_array($menu->permission_name, $permissions)) {
                 return false;
             }
             if ($menu->subMenus->isEmpty() && empty($menu->route)) {
                 return false;
             }
+
             return true;
         })->values();
 
         // 3. Ambil URL foto
         $photoUrl = null;
         if ($user->employee && $user->employee->photo_path) {
-            $photoUrl = asset('storage/' . $user->employee->photo_path);
+            $photoUrl = asset('storage/'.$user->employee->photo_path);
         }
 
         // 4. Kirim semua data ke React
         return Inertia::render('Settings/Profile', [
-            'mustVerifyEmail' => $user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail,
+            'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
             'menus' => $filteredMenus, // <-- Kirim menu yang SUDAH difilter
             'auth' => [
@@ -70,7 +78,7 @@ class ProfileController extends Controller
                     'roles' => $roles,
                     'permissions' => $permissions,
                     'photo_url' => $photoUrl, // <-- Kirim URL Foto
-                ]
+                ],
             ],
         ]);
     }

@@ -6,19 +6,22 @@ use App\Http\Controllers\Admin\BaseAdminController;
 use App\Models\DefectCategory;
 use App\Models\ProductionDefect;
 use App\Models\Spk;
+use Carbon\Carbon;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+use Symfony\Component\HttpFoundation\Response;
 
 class DefectController extends BaseAdminController
 {
-    public function index(Request $request)
+    public function index(Request $request): Response|Responsable
     {
         $department = $request->input('dept', 'qc'); // qc, warehouse, finishing
         $selectedSpk = null;
+        $selectedSpkId = $request->integer('spk_id');
 
-        if ($request->has('spk_id')) {
-            $selectedSpk = Spk::with('brand')->find($request->spk_id);
+        if ($selectedSpkId > 0) {
+            $selectedSpk = Spk::with('brand')->find($selectedSpkId);
         }
 
         // Ambil SPK Active
@@ -45,7 +48,7 @@ class DefectController extends BaseAdminController
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request): Response|Responsable
     {
         $validated = $request->validate([
             'spk_id' => 'required|exists:spks,id',

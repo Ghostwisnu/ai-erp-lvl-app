@@ -3,17 +3,20 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductionDefect extends Model
 {
     protected $guarded = ['id'];
 
-    public function spk()
+    /** @return BelongsTo<Spk, $this> */
+    public function spk(): BelongsTo
     {
         return $this->belongsTo(Spk::class);
     }
 
-    public function defectCategory()
+    /** @return BelongsTo<DefectCategory, $this> */
+    public function defectCategory(): BelongsTo
     {
         return $this->belongsTo(DefectCategory::class);
     }

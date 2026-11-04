@@ -11,13 +11,16 @@ use App\Models\PayrollAdjustment;
 use App\Models\PayrollItem;
 use App\Models\PayrollRun;
 use Carbon\Carbon;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\Response;
 
 class PayrollController extends BaseAdminController
 {
+    /** @return Responsable|Response */
     public function index()
     {
         $payrollRuns = PayrollRun::query()
@@ -29,8 +32,8 @@ class PayrollController extends BaseAdminController
                 'id' => $run->id,
                 'month' => $run->month,
                 'year' => $run->year,
-                'period_start' => $run->period_start->toDateString(),
-                'period_end' => $run->period_end->toDateString(),
+                'period_start' => Carbon::parse($run->period_start)->toDateString(),
+                'period_end' => Carbon::parse($run->period_end)->toDateString(),
                 'status' => $run->status,
                 'items_count' => $run->items->count(),
                 'net_pay_total' => round($run->items
@@ -51,6 +54,7 @@ class PayrollController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -167,6 +171,7 @@ class PayrollController extends BaseAdminController
             ->with('success', 'Draft penggajian berhasil dibuat.');
     }
 
+    /** @return Responsable|Response */
     public function show(PayrollRun $payrollRun)
     {
         $items = $payrollRun->items()
@@ -206,8 +211,8 @@ class PayrollController extends BaseAdminController
                 'id' => $payrollRun->id,
                 'month' => $payrollRun->month,
                 'year' => $payrollRun->year,
-                'period_start' => $payrollRun->period_start->toDateString(),
-                'period_end' => $payrollRun->period_end->toDateString(),
+                'period_start' => Carbon::parse($payrollRun->period_start)->toDateString(),
+                'period_end' => Carbon::parse($payrollRun->period_end)->toDateString(),
                 'status' => $payrollRun->status,
             ],
             'items' => $items,
@@ -222,6 +227,7 @@ class PayrollController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function destroy(PayrollRun $payrollRun)
     {
         $deleted = DB::transaction(function () use ($payrollRun) {
@@ -246,6 +252,7 @@ class PayrollController extends BaseAdminController
             ->with('success', 'Draft penggajian berhasil dihapus.');
     }
 
+    /** @return Responsable|Response */
     public function storeAdjustment(Request $request, PayrollRun $payrollRun, PayrollItem $payrollItem)
     {
         abort_unless($payrollItem->payroll_run_id === $payrollRun->id, 404);
@@ -274,6 +281,7 @@ class PayrollController extends BaseAdminController
         return redirect()->back()->with('success', 'Komponen penggajian berhasil ditambahkan.');
     }
 
+    /** @return Responsable|Response */
     public function destroyAdjustment(PayrollRun $payrollRun, PayrollItem $payrollItem, PayrollAdjustment $payrollAdjustment)
     {
         abort_unless($payrollItem->payroll_run_id === $payrollRun->id, 404);
@@ -285,6 +293,7 @@ class PayrollController extends BaseAdminController
         return redirect()->back()->with('success', 'Komponen penggajian berhasil dihapus.');
     }
 
+    /** @return Responsable|Response */
     public function approve(PayrollRun $payrollRun)
     {
         if ($payrollRun->status !== 'draft') {
@@ -300,6 +309,7 @@ class PayrollController extends BaseAdminController
         return redirect()->back()->with('success', 'Penggajian berhasil disetujui.');
     }
 
+    /** @return Responsable|Response */
     public function markPaid(PayrollRun $payrollRun)
     {
         if ($payrollRun->status !== 'approved') {
@@ -315,6 +325,7 @@ class PayrollController extends BaseAdminController
         return redirect()->back()->with('success', 'Penggajian berhasil ditandai sudah dibayar.');
     }
 
+    /** @return Responsable|Response */
     public function export(PayrollRun $payrollRun, string $format)
     {
         abort_unless(in_array($format, ['csv', 'xlsx'], true), 404);

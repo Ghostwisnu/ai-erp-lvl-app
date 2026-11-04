@@ -3,19 +3,22 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends BaseAdminController // <-- Extend Base Controller
 {
+    /** @return Responsable|Response */
     public function index(Request $request)
     {
         $search = trim((string) $request->query('search', ''));
         $role = (string) $request->query('role', '');
 
         $users = User::with('roles')
-            ->when($search !== '', fn ($query) => $query->where('name', 'like', '%' . addcslashes($search, '\\%_') . '%'))
+            ->when($search !== '', fn ($query) => $query->where('name', 'like', '%'.addcslashes($search, '\\%_').'%'))
             ->when($role !== '', fn ($query) => $query->whereHas('roles', fn ($q) => $q->where('name', $role)))
             ->latest()
             ->paginate(10)
@@ -28,6 +31,7 @@ class UserController extends BaseAdminController // <-- Extend Base Controller
         ]);
     }
 
+    /** @return Responsable|Response */
     public function create()
     {
         return $this->renderAdminPage('Admin/Users/Create', [
@@ -35,24 +39,25 @@ class UserController extends BaseAdminController // <-- Extend Base Controller
         ]);
     }
 
+    /** @return Responsable|Response */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|max:255|unique:users,email',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'roles'    => 'nullable|array',
-            'roles.*'  => 'exists:roles,name',
+            'roles' => 'nullable|array',
+            'roles.*' => 'exists:roles,name',
         ]);
 
         $user = User::create([
-            'name'              => $validated['name'],
-            'email'             => $validated['email'],
-            'password'          => Hash::make($validated['password']),
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
             'email_verified_at' => now(),
         ]);
 
-        if (!empty($validated['roles'])) {
+        if (! empty($validated['roles'])) {
             $user->syncRoles($validated['roles']);
         }
 
@@ -61,6 +66,7 @@ class UserController extends BaseAdminController // <-- Extend Base Controller
             ->with('success', 'User berhasil disimpan.');
     }
 
+    /** @return Responsable|Response */
     public function show(User $user)
     {
         return $this->renderAdminPage('Admin/Users/Show', [
@@ -68,6 +74,7 @@ class UserController extends BaseAdminController // <-- Extend Base Controller
         ]);
     }
 
+    /** @return Responsable|Response */
     public function edit(User $user)
     {
         return $this->renderAdminPage('Admin/Users/Edit', [
@@ -76,20 +83,21 @@ class UserController extends BaseAdminController // <-- Extend Base Controller
         ]);
     }
 
+    /** @return Responsable|Response */
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|max:255|unique:users,email,' . $user->id,
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,'.$user->id,
             'password' => 'nullable|string|min:8|confirmed',
-            'roles'    => 'nullable|array',
-            'roles.*'  => 'exists:roles,name',
+            'roles' => 'nullable|array',
+            'roles.*' => 'exists:roles,name',
         ]);
 
-        $user->name  = $validated['name'];
+        $user->name = $validated['name'];
         $user->email = $validated['email'];
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
         }
 
@@ -104,6 +112,7 @@ class UserController extends BaseAdminController // <-- Extend Base Controller
             ->with('success', 'User berhasil diupdate.');
     }
 
+    /** @return Responsable|Response */
     public function destroy(User $user)
     {
         if ($user->is(request()->user())) {

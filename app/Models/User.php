@@ -9,13 +9,13 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Laravel\Fortify\Contracts\PasskeyUser;
 use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
@@ -35,7 +35,6 @@ use Spatie\Permission\Traits\HasRoles;
  * @property-read Collection<int, Team> $ownedTeams
  * @property-read Collection<int, Membership> $teamMemberships
  * @property-read Collection<int, Team> $teams
- * 
  */
 #[Fillable(['name', 'email', 'password', 'current_team_id'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
@@ -43,7 +42,8 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
-    use HasTeams, HasRoles {
+
+    use HasRoles, HasTeams {
         HasTeams::teams insteadof HasRoles;
         HasRoles::teams as spatieTeams;
     }
@@ -89,10 +89,12 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         // Cek berdasarkan permission yang dimiliki user
         return $this->can($permissionName);
     }
+
     /**
      * Relasi ke data karyawan.
      */
-    public function employee()
+    /** @return HasOne<Employee, $this> */
+    public function employee(): HasOne
     {
         return $this->hasOne(Employee::class);
     }

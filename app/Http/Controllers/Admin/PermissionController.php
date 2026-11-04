@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
+use Symfony\Component\HttpFoundation\Response;
 
 class PermissionController extends BaseAdminController
 {
+    /** @return Responsable|Response */
     public function index()
     {
         return $this->renderAdminPage('Admin/Permissions/Index', [
@@ -14,11 +17,13 @@ class PermissionController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function create()
     {
         return $this->renderAdminPage('Admin/Permissions/Create');
     }
 
+    /** @return Responsable|Response */
     public function store(Request $request)
     {
         $request->validate([
@@ -31,6 +36,7 @@ class PermissionController extends BaseAdminController
             ->with('success', 'Permission berhasil dibuat.');
     }
 
+    /** @return Responsable|Response */
     public function show(Permission $permission)
     {
         return $this->renderAdminPage('Admin/Permissions/Show', [
@@ -38,6 +44,7 @@ class PermissionController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function edit(Permission $permission)
     {
         return $this->renderAdminPage('Admin/Permissions/Edit', [
@@ -45,10 +52,11 @@ class PermissionController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function update(Request $request, Permission $permission)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:permissions,name,' . $permission->id,
+            'name' => 'required|string|max:255|unique:permissions,name,'.$permission->id,
         ]);
 
         $permission->update(['name' => $request->name]);
@@ -57,6 +65,7 @@ class PermissionController extends BaseAdminController
             ->with('success', 'Permission berhasil diupdate.');
     }
 
+    /** @return Responsable|Response */
     public function destroy(Permission $permission)
     {
         if ($permission->roles()->count() > 0) {

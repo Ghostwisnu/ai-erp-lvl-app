@@ -2,12 +2,12 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use HafizAsifAli\ZkTeco\ZkDevice;
 use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\FingerLog;
 use Carbon\Carbon;
+use HafizAsifAli\ZkTeco\ZkDevice;
+use Illuminate\Console\Command;
 
 class TarikAbsensiFinger extends Command
 {
@@ -15,7 +15,7 @@ class TarikAbsensiFinger extends Command
 
     protected $description = 'Menarik data absensi dari beberapa mesin finger Solution';
 
-    public function handle()
+    public function handle(): int
     {
         // DAFTAR IP MESIN FINGER
         $machines = [
@@ -25,7 +25,7 @@ class TarikAbsensiFinger extends Command
         ];
 
         foreach ($machines as $ip) {
-            $this->info("==================================================");
+            $this->info('==================================================');
             $this->info("Mencoba terhubung ke mesin: {$ip}");
 
             try {
@@ -62,7 +62,7 @@ class TarikAbsensiFinger extends Command
                             'date' => $date,
                         ]);
 
-                        if (!$attendance->check_in) {
+                        if (! $attendance->check_in) {
                             $attendance->check_in = $time;
                         } else {
                             $attendance->check_out = $time;
@@ -75,11 +75,13 @@ class TarikAbsensiFinger extends Command
 
                 $this->info("Mesin {$ip}: Berhasil memproses {$count} data absensi.");
             } catch (\Exception $e) {
-                $this->error("Mesin {$ip}: Gagal ditarik. Error: " . $e->getMessage());
+                $this->error("Mesin {$ip}: Gagal ditarik. Error: ".$e->getMessage());
             }
         }
 
-        $this->info("==================================================");
-        $this->info("Proses penarikan data dari semua mesin selesai.");
+        $this->info('==================================================');
+        $this->info('Proses penarikan data dari semua mesin selesai.');
+
+        return self::SUCCESS;
     }
 }

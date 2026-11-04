@@ -1,30 +1,30 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\RoleController;
-use App\Http\Controllers\Admin\MenuController;
-use App\Http\Controllers\Admin\SubMenuController;
-use App\Http\Controllers\Admin\PermissionController;
-use App\Http\Controllers\Admin\EmployeeController;
+use App\Http\Controllers\Admin\AssetCatalogController;
+use App\Http\Controllers\Admin\AssetController;
 use App\Http\Controllers\Admin\AttendanceController;
-use App\Http\Controllers\Admin\ReportController;
-use App\Http\Controllers\Admin\OvertimeController;
-use App\Http\Controllers\Admin\HolidayController;
-use App\Http\Controllers\Admin\LeaveRequestController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\DefectCategoryController;
-use App\Http\Controllers\Produksi\SpkController;
-use App\Http\Controllers\Produksi\ScanController;
-use App\Http\Controllers\Produksi\DefectController;
-use App\Http\Controllers\Produksi\ReportQcController;
-use App\Http\Controllers\Produksi\MonitorQcController;
-use App\Http\Controllers\Produksi\SpkBatchController;
-use App\Http\Controllers\Admin\SettingFingerController;
-use App\Http\Controllers\Admin\RekapAbsensiController;
-use App\Http\Controllers\Admin\AssetController;
-use App\Http\Controllers\Admin\AssetCatalogController;
+use App\Http\Controllers\Admin\EmployeeController;
+use App\Http\Controllers\Admin\HolidayController;
+use App\Http\Controllers\Admin\LeaveRequestController;
+use App\Http\Controllers\Admin\MenuController;
+use App\Http\Controllers\Admin\OvertimeController;
 use App\Http\Controllers\Admin\PayrollController;
+use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\RekapAbsensiController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\SettingFingerController;
+use App\Http\Controllers\Admin\SubMenuController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Produksi\DefectController;
+use App\Http\Controllers\Produksi\MonitorQcController;
+use App\Http\Controllers\Produksi\ReportQcController;
+use App\Http\Controllers\Produksi\ScanController;
+use App\Http\Controllers\Produksi\SpkBatchController;
+use App\Http\Controllers\Produksi\SpkController;
+use Illuminate\Support\Facades\Route;
 
 // 1. Group Route Admin (Dilindungi Auth & Permission)
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
@@ -154,4 +154,4 @@ Route::middleware(['auth'])->group(function () {
 Route::inertia('/', 'welcome')->name('home');
 
 // 5. Route Settings (Profil, dll)
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

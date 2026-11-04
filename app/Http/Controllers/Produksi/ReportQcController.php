@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Produksi;
 
 use App\Http\Controllers\Admin\BaseAdminController;
-use App\Models\Spk;
-use App\Models\ProductionScan;
 use App\Models\ProductionDefect;
-use Illuminate\Http\Request;
+use App\Models\ProductionScan;
+use App\Models\Spk;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use Symfony\Component\HttpFoundation\Response;
 
 class ReportQcController extends BaseAdminController
 {
     // 1. Halaman Daftar PO
-    public function index()
+    public function index(): Response|Responsable
     {
         $spks = Spk::with('brand')
             ->withCount(['scans as total_scan', 'defects as total_defect'])
@@ -25,7 +25,7 @@ class ReportQcController extends BaseAdminController
     }
 
     // 2. Halaman Detail Report
-    public function show(Spk $spk)
+    public function show(Spk $spk): Response|Responsable
     {
         $spk->load('brand', 'details');
 
@@ -44,13 +44,13 @@ class ReportQcController extends BaseAdminController
 
         // --- MENGAMBIL DAFTAR TANGGAL UNIK ---
         $defectDates = ProductionDefect::where('spk_id', $spk->id)->select(DB::raw('DATE(created_at) as date'))->pluck('date');
-        $scanDates = ProductionScan::whereHas('spkDetail', fn($q) => $q->where('spk_id', $spk->id))->select(DB::raw('DATE(created_at) as date'))->pluck('date');
+        $scanDates = ProductionScan::whereHas('spkDetail', fn ($q) => $q->where('spk_id', $spk->id))->select(DB::raw('DATE(created_at) as date'))->pluck('date');
         $dates = $defectDates->merge($scanDates)->unique()->sort()->values();
 
         // --- DATA GRAFIK LINE ---
         $chartData = [];
         foreach ($dates as $date) {
-            $scanCount = ProductionScan::whereHas('spkDetail', fn($q) => $q->where('spk_id', $spk->id))
+            $scanCount = ProductionScan::whereHas('spkDetail', fn ($q) => $q->where('spk_id', $spk->id))
                 ->whereDate('created_at', $date)->count();
             $defectCount = ProductionDefect::where('spk_id', $spk->id)
                 ->whereDate('created_at', $date)->sum('qty');
@@ -72,7 +72,7 @@ class ReportQcController extends BaseAdminController
             ->map(function ($item) {
                 return [
                     'name' => $item->defectCategory ? $item->defectCategory->name : 'Unknown',
-                    'total' => $item->total,
+                    'total' => (int) $item->getAttribute('total'),
                 ];
             });
 

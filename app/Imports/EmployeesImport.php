@@ -11,8 +11,10 @@ use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 class EmployeesImport implements ToCollection, WithHeadingRow
 {
+    /** @var list<array{name: string, employee_code: string, department: mixed, position: mixed, role: mixed, join_date: string|null, status: string, is_valid: bool}> */
     public $previewData = [];
 
+    /** @param Collection<int, array<string, mixed>> $rows */
     public function collection(Collection $rows): void
     {
         $seenCodes = [];
@@ -44,7 +46,7 @@ class EmployeesImport implements ToCollection, WithHeadingRow
                 $seenCodes[$employeeCode] = true;
             }
 
-            if (!$joinDate) {
+            if (! $joinDate) {
                 $errors[] = 'Tanggal bergabung wajib diisi dengan tanggal yang valid.';
             }
 
@@ -75,8 +77,8 @@ class EmployeesImport implements ToCollection, WithHeadingRow
             $dateValue = trim((string) $value);
 
             foreach (['Y-m-d', 'd/m/Y'] as $format) {
-                if (Carbon::canBeCreatedFromFormat($dateValue, '!' . $format)) {
-                    $date = Carbon::createFromFormat('!' . $format, $dateValue);
+                if (Carbon::canBeCreatedFromFormat($dateValue, '!'.$format)) {
+                    $date = Carbon::createFromFormat('!'.$format, $dateValue);
 
                     if ($date->format($format) === $dateValue) {
                         return $date->toDateString();

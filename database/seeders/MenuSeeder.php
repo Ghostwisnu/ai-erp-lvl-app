@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Menu;
 use App\Models\SubMenu;
+use Illuminate\Database\Seeder;
 
 class MenuSeeder extends Seeder
 {
@@ -93,22 +93,24 @@ class MenuSeeder extends Seeder
         ]);
     }
 
+    /** @param array<string, int|string> $attributes */
     private function syncMenu(string $legacyName, string $name, array $attributes): Menu
     {
         $menu = Menu::query()
             ->whereIn('name', array_unique([$legacyName, $name]))
-            ->first() ?? new Menu();
+            ->first() ?? new Menu;
 
         $menu->fill(['name' => $name, ...$attributes])->save();
 
         return $menu;
     }
 
+    /** @param array<string, int|string> $attributes */
     private function syncSubMenu(Menu $menu, string $legacyName, string $name, array $attributes): void
     {
         $submenu = $menu->subMenus()
             ->whereIn('name', array_unique([$legacyName, $name]))
-            ->first() ?? new SubMenu();
+            ->first() ?? new SubMenu;
 
         $submenu->fill([
             'menu_id' => $menu->id,

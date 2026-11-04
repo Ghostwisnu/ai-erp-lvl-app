@@ -6,13 +6,15 @@ use App\Http\Controllers\Admin\BaseAdminController;
 use App\Models\ProductionScan;
 use App\Models\Spk;
 use App\Models\SpkDetail;
+use Carbon\Carbon;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+use Symfony\Component\HttpFoundation\Response;
 
 class ScanController extends BaseAdminController
 {
-    public function index()
+    public function index(): Response|Responsable
     {
         // Hitung statistik hari ini untuk halaman pilih departemen
         $stats = [
@@ -25,13 +27,13 @@ class ScanController extends BaseAdminController
                 'daily' => ProductionScan::where('department', 'finishing')->whereDate('created_at', Carbon::today())->count(),
                 'pass' => ProductionScan::where('department', 'finishing')->where('status', 'pass')->whereDate('created_at', Carbon::today())->count(),
                 'defect' => ProductionScan::where('department', 'finishing')->where('status', 'defect')->whereDate('created_at', Carbon::today())->count(),
-            ]
+            ],
         ];
 
         return $this->renderAdminPage('Produksi/Scan/SelectDepartment', ['stats' => $stats]);
     }
 
-    public function scan($department, Request $request)
+    public function scan(string $department, Request $request): Response|Responsable
     {
         // 1. TAMPILKAN SEMUA SPK YANG STATUSNYA 'ACTIVE' (Tanpa filter departemen)
         $activeSpks = Spk::with('brand', 'details')
@@ -52,11 +54,11 @@ class ScanController extends BaseAdminController
         return $this->renderAdminPage('Produksi/Scan/ScanBoard', [
             'department' => $department,
             'activeSpks' => $activeSpks,
-            'selectedSpk' => $selectedSpk
+            'selectedSpk' => $selectedSpk,
         ]);
     }
 
-    public function submitScan(Request $request)
+    public function submitScan(Request $request): Response|Responsable
     {
         $request->validate([
             'spk_id' => 'required|exists:spks,id',
@@ -70,7 +72,7 @@ class ScanController extends BaseAdminController
             $q->where('id', $request->spk_id);
         })->where('barcode', $request->barcode)->first();
 
-        if (!$detail) {
+        if (! $detail) {
             return back()->with('error', 'Barcode tidak ditemukan di PO ini!');
         }
 

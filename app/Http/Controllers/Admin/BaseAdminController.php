@@ -7,10 +7,12 @@ use App\Models\Menu;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class BaseAdminController extends Controller
 {
-    protected function renderAdminPage(string $component, array $props = [])
+    /** @param array<string, mixed> $props */
+    protected function renderAdminPage(string $component, array $props = []): Response
     {
         $user = Auth::user();
         $authData = null;
@@ -32,7 +34,7 @@ class BaseAdminController extends Controller
 
             $photoUrl = null;
             if ($user->employee && $user->employee->photo_path) {
-                $photoUrl = asset('storage/' . $user->employee->photo_path);
+                $photoUrl = asset('storage/'.$user->employee->photo_path);
             }
 
             $authData = [
@@ -43,7 +45,7 @@ class BaseAdminController extends Controller
                     'roles' => $roles,
                     'permissions' => $permissions,
                     'photo_url' => $photoUrl,
-                ]
+                ],
             ];
 
             // ==========================================
@@ -56,16 +58,21 @@ class BaseAdminController extends Controller
             $filteredMenus = $menus->map(function ($menu) use ($permissions, $isSuperAdmin) {
                 // 1. Filter Submenu
                 $menu->setRelation('subMenus', $menu->subMenus->filter(function ($sub) use ($permissions, $isSuperAdmin) {
-                    if ($isSuperAdmin) return true; // Super admin lihat semua
-                    if (empty($sub->permission_name)) return true; // Submenu tanpa permission
+                    if ($isSuperAdmin) {
+                        return true;
+                    } // Super admin lihat semua
+                    if (empty($sub->permission_name)) {
+                        return true;
+                    } // Submenu tanpa permission
+
                     return in_array($sub->permission_name, $permissions); // Cek permission
                 })->values());
 
                 return $menu;
             })->filter(function ($menu) use ($permissions, $isSuperAdmin) {
                 // 2. Filter Menu Induk
-                if (!$isSuperAdmin && !empty($menu->permission_name)) {
-                    if (!in_array($menu->permission_name, $permissions)) {
+                if (! $isSuperAdmin && ! empty($menu->permission_name)) {
+                    if (! in_array($menu->permission_name, $permissions)) {
                         return false; // Sembunyikan jika tidak punya permission
                     }
                 }

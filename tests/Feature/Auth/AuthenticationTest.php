@@ -31,7 +31,7 @@ test('login screen includes team invitation context', function () {
 
     $response->assertOk();
     $response->assertInertia(
-        fn(Assert $page) => $page
+        fn (Assert $page) => $page
             ->component('auth/login')
             ->where('teamInvitation.code', $invitation->code)
             ->where('teamInvitation.teamName', 'Laravel Team'),
@@ -57,7 +57,7 @@ test('passkey login response redirects to the current team dashboard', function 
         'HTTP_ACCEPT' => 'application/json',
     ]);
     $request->setLaravelSession($this->app['session.store']);
-    $request->setUserResolver(fn() => $user);
+    $request->setUserResolver(fn () => $user);
 
     $jsonResponse = app(PasskeyLoginResponse::class)->toResponse($request);
 
@@ -109,7 +109,7 @@ test('users can logout', function () {
 test('users are rate limited', function () {
     $user = User::factory()->create();
 
-    RateLimiter::increment(md5('login' . implode('|', [strtolower($user->name), '127.0.0.1'])), amount: 5);
+    RateLimiter::increment(md5('login'.implode('|', [strtolower($user->name), '127.0.0.1'])), amount: 5);
 
     $response = $this->post(route('login.store'), [
         'name' => $user->name,

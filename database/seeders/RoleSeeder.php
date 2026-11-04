@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
 {
@@ -18,6 +18,6 @@ class RoleSeeder extends Seeder
 
         // Kamu bisa tambah role lain di sini, misal 'staff'
         // $staff = Role::firstOrCreate(['name' => 'staff']);
-        // $staff->givePermissionTo('manage-users'); 
+        // $staff->givePermissionTo('manage-users');
     }
 }

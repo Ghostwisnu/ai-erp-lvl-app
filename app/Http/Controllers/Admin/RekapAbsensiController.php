@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\FingerLog;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Contracts\Support\Responsable;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Symfony\Component\HttpFoundation\Response;
 
 class RekapAbsensiController extends BaseAdminController
 {
+    /** @return Responsable|Response */
     public function index(Request $request)
     {
         $date = $request->input('date', Carbon::today()->toDateString());
@@ -36,12 +39,12 @@ class RekapAbsensiController extends BaseAdminController
 
             // AMANKAN FORMAT JAM
             $checkIn = $attendance?->check_in;
-            if (!$checkIn && $firstScan) {
+            if (! $checkIn && $firstScan) {
                 $checkIn = Carbon::parse($firstScan)->format('H:i:s');
             }
 
             $checkOut = $attendance?->check_out;
-            if (!$checkOut && $lastScan) {
+            if (! $checkOut && $lastScan) {
                 $checkOut = Carbon::parse($lastScan)->format('H:i:s');
             }
 
@@ -53,7 +56,7 @@ class RekapAbsensiController extends BaseAdminController
                 'check_in' => $checkIn,
                 'check_out' => $checkOut,
                 'total_scan' => $logs->count(),
-                'status' => $attendance?->status ?? ($logs->count() > 0 ? 'present' : 'absent'),
+                'status' => $attendance->status ?? ($logs->count() > 0 ? 'present' : 'absent'),
             ];
         });
 
@@ -63,13 +66,15 @@ class RekapAbsensiController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function tarikData()
     {
         try {
             Artisan::call('finger:tarik');
+
             return redirect()->back()->with('success', 'Data absensi berhasil ditarik dari mesin finger!');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal menarik data: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menarik data: '.$e->getMessage());
         }
     }
 }

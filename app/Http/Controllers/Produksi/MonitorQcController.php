@@ -6,13 +6,15 @@ use App\Http\Controllers\Admin\BaseAdminController;
 use App\Models\ProductionDefect;
 use App\Models\ProductionScan;
 use App\Models\Spk;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Contracts\Support\Responsable;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\Response;
 
 class MonitorQcController extends BaseAdminController
 {
-    public function index(Request $request)
+    public function index(Request $request): Response|Responsable
     {
         // Set timezone ke Asia/Jakarta untuk pencocokan jam
         $timezone = 'Asia/Jakarta';
@@ -22,7 +24,7 @@ class MonitorQcController extends BaseAdminController
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $selectedSpkId = $request->input('spk_id', $activeSpks->first()?->id);
+        $selectedSpkId = $request->integer('spk_id', $activeSpks->first()->id ?? 0);
         $selectedSpk = null;
 
         if ($selectedSpkId) {
@@ -46,6 +48,7 @@ class MonitorQcController extends BaseAdminController
         $grandTotal = 0;
 
         $totalPassAllTime = 0;
+        $totalDefectAllTime = 0;
         $totalPo = 0;
 
         if ($selectedSpk) {
@@ -81,15 +84,16 @@ class MonitorQcController extends BaseAdminController
                 $row = [
                     'name' => $defect->defectCategory->name ?? 'Unknown',
                     'slots' => [],
-                    'total' => 0
+                    'total' => 0,
                 ];
 
                 foreach ($timeSlots as $slot) {
-                    list($start, $end) = explode('-', $slot);
+                    [$start, $end] = explode('-', $slot);
 
                     // Filter menggunakan timezone Asia/Jakarta
                     $qtyInSlot = $defectsOnDate->filter(function ($item) use ($defect, $start, $end, $timezone) {
                         $time = $item->created_at->timezone($timezone)->format('H:i');
+
                         return $item->defect_category_id == $defect->defect_category_id
                             && $time >= $start && $time <= $end;
                     })->sum('qty');
@@ -125,7 +129,7 @@ class MonitorQcController extends BaseAdminController
                 'totalPass' => $totalPassAllTime,
                 'totalDefect' => $totalDefectAllTime,
                 'totalPo' => $totalPo,
-            ]
+            ],
         ]);
     }
 }

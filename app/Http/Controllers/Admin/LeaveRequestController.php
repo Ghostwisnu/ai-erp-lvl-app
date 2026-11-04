@@ -7,13 +7,16 @@ use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\PayrollRun;
 use Carbon\Carbon;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\Response;
 
 class LeaveRequestController extends BaseAdminController
 {
+    /** @return Responsable|Response */
     public function index()
     {
         // Ambil semua pengajuan izin beserta data karyawan
@@ -24,6 +27,7 @@ class LeaveRequestController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function create()
     {
         // Ambil semua karyawan untuk dropdown
@@ -34,6 +38,7 @@ class LeaveRequestController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -60,6 +65,7 @@ class LeaveRequestController extends BaseAdminController
             ->with('success', 'Pengajuan izin berhasil dibuat.');
     }
 
+    /** @return Responsable|Response */
     public function show(LeaveRequest $leaveRequest)
     {
         return $this->renderAdminPage('Admin/LeaveRequests/Show', [
@@ -67,6 +73,7 @@ class LeaveRequestController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function edit(LeaveRequest $leaveRequest)
     {
         $employees = Employee::orderBy('full_name')->get();
@@ -77,6 +84,7 @@ class LeaveRequestController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function update(Request $request, LeaveRequest $leaveRequest)
     {
         $validated = $request->validate([
@@ -104,6 +112,7 @@ class LeaveRequestController extends BaseAdminController
             ->with('success', 'Pengajuan izin berhasil diupdate.');
     }
 
+    /** @return Responsable|Response */
     public function destroy(LeaveRequest $leaveRequest)
     {
         $attachmentPath = DB::transaction(function () use ($leaveRequest) {
@@ -146,6 +155,7 @@ class LeaveRequestController extends BaseAdminController
             ->with('success', 'Pengajuan izin berhasil dihapus.');
     }
 
+    /** @return Responsable|Response */
     public function cancel(Request $request, LeaveRequest $leaveRequest)
     {
         $validated = $request->validate([
@@ -199,6 +209,7 @@ class LeaveRequestController extends BaseAdminController
     }
 
     // Method Tambahan untuk Approve/Reject
+    /** @return Responsable|Response */
     public function approve(Request $request, LeaveRequest $leaveRequest)
     {
         $validated = $request->validate([

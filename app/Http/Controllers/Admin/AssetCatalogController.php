@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\AssetCategory;
 use App\Models\AssetLocation;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\Response;
 
 class AssetCatalogController extends BaseAdminController
 {
+    /** @return Responsable|Response */
     public function index()
     {
         return $this->renderAdminPage('Admin/Assets/Catalog', [
@@ -17,6 +20,7 @@ class AssetCatalogController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function storeCategory(Request $request)
     {
         AssetCategory::create($request->validate([
@@ -27,6 +31,7 @@ class AssetCatalogController extends BaseAdminController
         return back()->with('success', 'Kategori aset berhasil ditambahkan.');
     }
 
+    /** @return Responsable|Response */
     public function updateCategory(Request $request, AssetCategory $assetCategory)
     {
         $assetCategory->update($request->validate([
@@ -37,6 +42,7 @@ class AssetCatalogController extends BaseAdminController
         return back()->with('success', 'Kategori aset berhasil diperbarui.');
     }
 
+    /** @return Responsable|Response */
     public function destroyCategory(AssetCategory $assetCategory)
     {
         if ($assetCategory->assets()->exists()) {
@@ -48,6 +54,7 @@ class AssetCatalogController extends BaseAdminController
         return back()->with('success', 'Kategori aset berhasil dihapus.');
     }
 
+    /** @return Responsable|Response */
     public function storeLocation(Request $request)
     {
         AssetLocation::create($request->validate([
@@ -58,6 +65,7 @@ class AssetCatalogController extends BaseAdminController
         return back()->with('success', 'Lokasi aset berhasil ditambahkan.');
     }
 
+    /** @return Responsable|Response */
     public function updateLocation(Request $request, AssetLocation $assetLocation)
     {
         $assetLocation->update($request->validate([
@@ -68,6 +76,7 @@ class AssetCatalogController extends BaseAdminController
         return back()->with('success', 'Lokasi aset berhasil diperbarui.');
     }
 
+    /** @return Responsable|Response */
     public function destroyLocation(AssetLocation $assetLocation)
     {
         if ($assetLocation->assets()->exists()) {

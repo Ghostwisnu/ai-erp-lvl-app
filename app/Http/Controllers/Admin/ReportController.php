@@ -8,11 +8,14 @@ use App\Models\Holiday;
 use App\Models\LeaveRequest;
 use App\Models\Overtime;
 use Carbon\Carbon;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\Response;
 
 class ReportController extends BaseAdminController
 {
+    /** @return Responsable|Response */
     public function export(Request $request)
     {
         $validated = $request->validate([
@@ -36,6 +39,7 @@ class ReportController extends BaseAdminController
         );
     }
 
+    /** @return Responsable|Response */
     public function dailyAttendance(Request $request)
     {
         $validated = $request->validate([
@@ -72,7 +76,7 @@ class ReportController extends BaseAdminController
                 'total_scan' => $logs->count(),
                 'status' => $isDayOff
                     ? 'present'
-                    : ($attendance?->status ?? ($logs->isNotEmpty() ? 'present' : 'absent')),
+                    : ($attendance->status ?? ($logs->isNotEmpty() ? 'present' : 'absent')),
             ];
         });
 
@@ -85,12 +89,13 @@ class ReportController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function index(Request $request)
     {
         $inputMonth = (int) $request->input('month', Carbon::now()->month);
         $inputYear = (int) $request->input('year', Carbon::now()->year);
 
-        if (!$request->has('month') && Carbon::now()->day >= 26) {
+        if (! $request->has('month') && Carbon::now()->day >= 26) {
             $nextMonth = Carbon::now()->addMonth();
             $inputMonth = $nextMonth->month;
             $inputYear = $nextMonth->year;
@@ -162,7 +167,7 @@ class ReportController extends BaseAdminController
                             'is_leave' => false,
                             'is_day_off' => true,
                             'day_off_label' => $dateInfo['holiday_name']
-                                ? 'Tanggal merah: ' . $dateInfo['holiday_name']
+                                ? 'Tanggal merah: '.$dateInfo['holiday_name']
                                 : 'Akhir pekan',
                         ];
                     }
@@ -171,6 +176,7 @@ class ReportController extends BaseAdminController
                     $onLeave = $empLeaves->first(function ($leave) use ($currentDate) {
                         $start = Carbon::parse($leave->start_date);
                         $end = $leave->end_date ? Carbon::parse($leave->end_date) : $start;
+
                         return $currentDate->between($start, $end);
                     });
 
@@ -181,6 +187,7 @@ class ReportController extends BaseAdminController
                             'izin_setengah_hari' => 'present',
                             default => 'absent',
                         };
+
                         return [
                             'date' => $dateStr,
                             'status' => $status,
@@ -211,9 +218,10 @@ class ReportController extends BaseAdminController
             foreach ($overtimes as $ot) {
                 $empOvertime = $ot->employees->firstWhere('id', $emp->id);
                 if ($empOvertime) {
-                    $overtimeMap[$ot->date] = (float) $empOvertime->pivot->duration;
+                    $overtimeMap[$ot->date] = (float) data_get($empOvertime, 'pivot.duration');
                 }
             }
+
             return [
                 'id' => $emp->id,
                 'name' => $emp->full_name,
@@ -246,8 +254,8 @@ class ReportController extends BaseAdminController
 
                 return [
                     'date' => $dateInfo['date'],
-                    'leave_type' => ($leave && !$isDayOff) ? $leave->type : null,
-                    'reason' => ($leave && !$isDayOff) ? $leave->reason : null,
+                    'leave_type' => ($leave && ! $isDayOff) ? $leave->type : null,
+                    'reason' => ($leave && ! $isDayOff) ? $leave->reason : null,
                 ];
             });
 
@@ -268,7 +276,7 @@ class ReportController extends BaseAdminController
             'dates' => $dates,
             'month' => $inputMonth,
             'year' => $inputYear,
-            'period' => $startDate->format('d/m/Y') . ' - ' . $endDate->format('d/m/Y'),
+            'period' => $startDate->format('d/m/Y').' - '.$endDate->format('d/m/Y'),
             'departments' => $departments,
         ]);
     }

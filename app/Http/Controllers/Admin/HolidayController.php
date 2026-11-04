@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\Holiday;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
+use Symfony\Component\HttpFoundation\Response;
 
 class HolidayController extends BaseAdminController
 {
+    /** @return Responsable|Response */
     public function index()
     {
         // Ambil data dari database lokal (tabel holidays buatan Anda)
@@ -23,6 +25,7 @@ class HolidayController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function store(Request $request)
     {
         $request->validate([
@@ -39,13 +42,16 @@ class HolidayController extends BaseAdminController
         return redirect()->back()->with('success', 'Tanggal merah berhasil ditambahkan.');
     }
 
+    /** @return Responsable|Response */
     public function destroy(Holiday $holiday)
     {
         $holiday->delete();
+
         return redirect()->back()->with('success', 'Tanggal merah berhasil dihapus.');
     }
 
     // Fungsi import manual (jika Anda ingin menambahkan dari API di masa depan)
+    /** @return Responsable|Response */
     public function import(Request $request)
     {
         $request->validate([

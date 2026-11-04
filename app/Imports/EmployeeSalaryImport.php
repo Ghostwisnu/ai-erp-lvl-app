@@ -9,8 +9,10 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class EmployeeSalaryImport implements ToCollection, WithHeadingRow
 {
+    /** @var list<array{row_number: int, employee_code: string, full_name: string|null, current_salary: numeric-string|int|float|null, new_salary: float|null, status: string, is_valid: bool}> */
     public array $previewData = [];
 
+    /** @param Collection<int, array<string, mixed>> $rows */
     public function collection(Collection $rows): void
     {
         $normalizedRows = $rows->map(function ($row, $index) {
@@ -43,11 +45,11 @@ class EmployeeSalaryImport implements ToCollection, WithHeadingRow
                 $seenCodes[$row['employee_code']] = true;
             }
 
-            if (!$employee && $row['employee_code'] !== '') {
+            if (! $employee && $row['employee_code'] !== '') {
                 $errors[] = 'Karyawan tidak ditemukan.';
             }
 
-            if (!is_numeric($salary) || !is_finite((float) $salary) || (float) $salary < 0) {
+            if (! is_numeric($salary) || ! is_finite((float) $salary) || (float) $salary < 0) {
                 $errors[] = 'Gaji pokok harus berupa angka nol atau lebih.';
             }
 

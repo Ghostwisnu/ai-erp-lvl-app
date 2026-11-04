@@ -8,14 +8,21 @@ use App\Models\AssetLocation;
 use App\Models\AssetMaintenance;
 use App\Models\AssetMovement;
 use App\Models\User;
+use Illuminate\Contracts\Support\Responsable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\In;
+use Illuminate\Validation\Rules\Unique;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AssetController extends BaseAdminController
 {
+    /** @return Responsable|Response */
     public function index(Request $request)
     {
         $assets = Asset::query()
@@ -43,11 +50,13 @@ class AssetController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function create()
     {
         return $this->renderAdminPage('Admin/Assets/Create', $this->formOptions());
     }
 
+    /** @return Responsable|Response */
     public function store(Request $request)
     {
         $validated = $request->validate($this->assetRules());
@@ -56,6 +65,7 @@ class AssetController extends BaseAdminController
         return to_route('admin.assets.show', $asset)->with('success', 'Aset berhasil ditambahkan.');
     }
 
+    /** @return Responsable|Response */
     public function show(Asset $asset)
     {
         $asset->load([
@@ -75,6 +85,7 @@ class AssetController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function edit(Asset $asset)
     {
         return $this->renderAdminPage('Admin/Assets/Edit', [
@@ -83,6 +94,7 @@ class AssetController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function update(Request $request, Asset $asset)
     {
         $asset->update($request->validate($this->assetRules($asset)));
@@ -90,6 +102,7 @@ class AssetController extends BaseAdminController
         return to_route('admin.assets.show', $asset)->with('success', 'Aset berhasil diperbarui.');
     }
 
+    /** @return Responsable|Response */
     public function destroy(Asset $asset)
     {
         $asset->delete();
@@ -97,6 +110,7 @@ class AssetController extends BaseAdminController
         return to_route('admin.assets.index')->with('success', 'Aset berhasil dihapus.');
     }
 
+    /** @return Responsable|Response */
     public function assign(Request $request, Asset $asset)
     {
         $validated = $request->validate([
@@ -147,6 +161,7 @@ class AssetController extends BaseAdminController
         return to_route('admin.assets.show', $asset)->with('success', 'Penanggung jawab atau lokasi aset berhasil diperbarui.');
     }
 
+    /** @return Responsable|Response */
     public function storeMaintenance(Request $request, Asset $asset)
     {
         $validated = $request->validate([
@@ -176,6 +191,7 @@ class AssetController extends BaseAdminController
         return to_route('admin.assets.show', $asset)->with('success', 'Riwayat perawatan aset berhasil dicatat.');
     }
 
+    /** @return Responsable|Response */
     public function reports()
     {
         $assets = Asset::with(['category:id,name', 'location:id,name', 'assignee:id,name'])
@@ -187,9 +203,9 @@ class AssetController extends BaseAdminController
             'assets' => $assets,
             'summary' => [
                 'assetCount' => $assets->count(),
-                'acquisitionTotal' => round($assets->sum('acquisition_cost'), 2),
-                'bookValueTotal' => round($assets->sum('current_book_value'), 2),
-                'maintenanceTotal' => round(AssetMaintenance::sum('cost'), 2),
+                'acquisitionTotal' => round((float) $assets->sum('acquisition_cost'), 2),
+                'bookValueTotal' => round((float) $assets->sum('current_book_value'), 2),
+                'maintenanceTotal' => round((float) AssetMaintenance::sum('cost'), 2),
             ],
         ]);
     }
@@ -202,6 +218,9 @@ class AssetController extends BaseAdminController
 
         return response()->streamDownload(function () use ($assets) {
             $output = fopen('php://output', 'w');
+            if ($output === false) {
+                throw new \RuntimeException('Unable to open the CSV output stream.');
+            }
             fputcsv($output, ['Kode', 'Nama', 'Kategori', 'Lokasi', 'Penanggung Jawab', 'Status', 'Tanggal Perolehan', 'Nilai Perolehan', 'Nilai Buku']);
 
             foreach ($assets as $asset) {
@@ -209,10 +228,10 @@ class AssetController extends BaseAdminController
                     $asset->code,
                     $asset->name,
                     $asset->category->name,
-                    $asset->location?->name ?? '',
-                    $asset->assignee?->name ?? '',
+                    $asset->location->name ?? '',
+                    $asset->assignee->name ?? '',
                     $asset->status,
-                    $asset->acquisition_date->toDateString(),
+                    Carbon::parse($asset->acquisition_date)->toDateString(),
                     $asset->acquisition_cost,
                     $asset->current_book_value,
                 ]);
@@ -222,6 +241,9 @@ class AssetController extends BaseAdminController
         }, 'laporan-aset.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
+    /**
+     * @return array<string, list<string|Unique|In>>
+     */
     private function assetRules(?Asset $asset = null): array
     {
         return [
@@ -242,6 +264,13 @@ class AssetController extends BaseAdminController
         ];
     }
 
+    /**
+     * @return array{
+     *     categories: Collection<int, AssetCategory>,
+     *     locations: Collection<int, AssetLocation>,
+     *     users: Collection<int, User>
+     * }
+     */
     private function formOptions(): array
     {
         return [

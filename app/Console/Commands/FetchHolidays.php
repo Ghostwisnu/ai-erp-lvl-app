@@ -10,9 +10,10 @@ class FetchHolidays extends Command
 {
     // Nama perintah yang akan dipanggil
     protected $signature = 'holidays:fetch {year?}';
+
     protected $description = 'Fetch national holidays from Nager.Date API';
 
-    public function handle()
+    public function handle(): int
     {
         $year = $this->argument('year') ?? date('Y');
 
@@ -23,7 +24,8 @@ class FetchHolidays extends Command
 
         if ($response->failed()) {
             $this->error('Gagal mengambil data dari API.');
-            return;
+
+            return self::FAILURE;
         }
 
         $holidays = $response->json();
@@ -42,5 +44,7 @@ class FetchHolidays extends Command
         }
 
         $this->info("Berhasil! {$count} hari libur diproses.");
+
+        return self::SUCCESS;
     }
 }

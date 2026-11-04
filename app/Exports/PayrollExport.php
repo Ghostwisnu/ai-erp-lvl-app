@@ -11,17 +11,18 @@ class PayrollExport implements FromCollection, WithHeadings
 {
     public function __construct(private readonly PayrollRun $payrollRun) {}
 
+    /** @return Collection<int, array{string, string, string|null, float, float, int, float, float, float, float, string, float, string, float, int|float}> */
     public function collection(): Collection
     {
-        return $this->payrollRun->items()
+        $collection = $this->payrollRun->items()
             ->with('adjustments')
             ->orderBy('employee_name')
             ->get()
             ->map(function ($item) {
                 $allowances = $item->adjustments->where('type', 'allowance');
                 $deductions = $item->adjustments->where('type', 'deduction');
-                $allowanceTotal = $allowances->sum('amount');
-                $deductionTotal = $deductions->sum('amount');
+                $allowanceTotal = (float) $allowances->sum('amount');
+                $deductionTotal = (float) $deductions->sum('amount');
                 $netPay = (float) $item->basic_salary
                     - (float) $item->absence_deduction
                     + (float) $item->overtime_amount
@@ -46,6 +47,8 @@ class PayrollExport implements FromCollection, WithHeadings
                     max(0, $netPay),
                 ];
             });
+
+        return $collection;
     }
 
     public function headings(): array

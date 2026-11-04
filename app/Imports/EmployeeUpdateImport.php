@@ -27,8 +27,10 @@ class EmployeeUpdateImport implements ToCollection, WithHeadingRow
         'tanggal_bergabung' => ['column' => 'join_date', 'label' => 'Tanggal Bergabung', 'type' => 'date'],
     ];
 
+    /** @var list<array{row_number: int, employee_code: string, full_name: string|null, changes: array<string, array{label: string, old: mixed, new: string}>, status: string, is_valid: bool}> */
     public array $previewData = [];
 
+    /** @param Collection<int, array<string, mixed>> $rows */
     public function collection(Collection $rows): void
     {
         $rows = $rows->map(fn ($row, $index) => [
@@ -78,8 +80,6 @@ class EmployeeUpdateImport implements ToCollection, WithHeadingRow
                 }
 
                 $current = $employee?->{$field['column']};
-                $current = $current instanceof \DateTimeInterface ? $current->format('Y-m-d') : $current;
-
                 if ($employee && (string) $current !== (string) $value) {
                     $changes[$field['column']] = [
                         'label' => $field['label'],
@@ -102,7 +102,8 @@ class EmployeeUpdateImport implements ToCollection, WithHeadingRow
         }
     }
 
-    private function hasAnyValue($row): bool
+    /** @param array<string, mixed> $row */
+    private function hasAnyValue(array $row): bool
     {
         foreach (array_keys(self::FIELDS) as $header) {
             if (trim((string) ($row[$header] ?? '')) !== '') {
@@ -113,6 +114,10 @@ class EmployeeUpdateImport implements ToCollection, WithHeadingRow
         return false;
     }
 
+    /**
+     * @param  array{column: string, label: string, max?: int, type?: string}  $field
+     * @return array{string|null, string|null}
+     */
     private function normalize(mixed $raw, array $field): array
     {
         $type = $field['type'] ?? 'text';

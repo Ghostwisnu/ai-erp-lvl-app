@@ -2,28 +2,31 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\EmployeeSalaryTemplateExport;
+use App\Exports\EmployeeTemplateExport;
+use App\Exports\EmployeeUpdateTemplateExport;
+use App\Imports\EmployeeSalaryImport;
+use App\Imports\EmployeesImport;
+use App\Imports\EmployeeUpdateImport;
 use App\Models\Employee;
 use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Role;
-use App\Imports\EmployeesImport;
-use App\Imports\EmployeeSalaryImport;
-use App\Imports\EmployeeUpdateImport;
-use App\Exports\EmployeeUpdateTemplateExport;
-use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Hash;
-use App\Exports\EmployeeTemplateExport;
-use App\Exports\EmployeeSalaryTemplateExport;
-
+use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use Spatie\Permission\Models\Role;
+use Symfony\Component\HttpFoundation\Response;
 
 class EmployeeController extends BaseAdminController
 {
+    /** @return Responsable|Response */
     public function index(Request $request)
     {
         // Ambil daftar departemen unik untuk filter
-        $departments = \App\Models\Employee::whereNotNull('department')
+        $departments = Employee::whereNotNull('department')
             ->where('department', '!=', '')
             ->distinct()
             ->pluck('department')
@@ -32,9 +35,9 @@ class EmployeeController extends BaseAdminController
         $search = trim((string) $request->query('search', ''));
         $department = (string) $request->query('department', '');
 
-        $employees = \App\Models\Employee::with('user')
+        $employees = Employee::with('user')
             ->when($search !== '', function ($query) use ($search) {
-                $like = '%' . addcslashes($search, '\\%_') . '%';
+                $like = '%'.addcslashes($search, '\\%_').'%';
                 $query->where(fn ($q) => $q->where('full_name', 'like', $like)->orWhere('employee_code', 'like', $like));
             })
             ->when($department !== '', fn ($query) => $query->where('department', $department))
@@ -50,6 +53,7 @@ class EmployeeController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function create()
     {
         // Hanya tampilkan user yang BELUM punya data karyawan
@@ -62,19 +66,21 @@ class EmployeeController extends BaseAdminController
     }
 
     // 1. Tampilkan Form Upload
+    /** @return Responsable|Response */
     public function importForm()
     {
         return $this->renderAdminPage('Admin/Employees/Import');
     }
 
     // 2. Proses Preview (Baca File)
+    /** @return Responsable|Response */
     public function importPreview(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:2048'
+            'file' => 'required|mimes:xlsx,xls,csv|max:2048',
         ]);
 
-        $import = new EmployeesImport();
+        $import = new EmployeesImport;
         Excel::import($import, $request->file('file'));
 
         // Simpan data preview ke session sementara
@@ -85,6 +91,7 @@ class EmployeeController extends BaseAdminController
     }
 
     // 3. Tampilkan Halaman Preview (Konfirmasi)
+    /** @return Responsable|Response */
     public function importPreviewPage()
     {
         $previewData = session('import_employees_preview', []);
@@ -94,11 +101,12 @@ class EmployeeController extends BaseAdminController
         }
 
         return $this->renderAdminPage('Admin/Employees/ImportPreview', [
-            'previewData' => $previewData
+            'previewData' => $previewData,
         ]);
     }
 
     // 4. Proses Simpan (Konfirmasi)
+    /** @return Responsable|Response */
     public function importStore(Request $request)
     {
         $previewData = session('import_employees_preview', []);
@@ -109,10 +117,12 @@ class EmployeeController extends BaseAdminController
 
         DB::transaction(function () use ($previewData) {
             foreach ($previewData as $data) {
-                if (!$data['is_valid']) continue;
+                if (! $data['is_valid']) {
+                    continue;
+                }
 
                 // 1. Buat User Baru
-                $generatedEmail = 'employee-' . hash('sha256', strtolower($data['employee_code'])) . '@employees.invalid';
+                $generatedEmail = 'employee-'.hash('sha256', strtolower($data['employee_code'])).'@employees.invalid';
                 $user = User::create([
                     'name' => $data['name'],
                     'email' => $generatedEmail,
@@ -148,23 +158,26 @@ class EmployeeController extends BaseAdminController
         return redirect()->route('admin.employees.index')->with('success', 'Data Karyawan & User berhasil diimport.');
     }
 
+    /** @return Responsable|Response */
     public function downloadTemplate()
     {
         return Excel::download(new EmployeeTemplateExport, 'template_import_karyawan.xlsx');
     }
 
+    /** @return Responsable|Response */
     public function bulkUpdateForm()
     {
         return $this->renderAdminPage('Admin/Employees/BulkUpdate');
     }
 
+    /** @return Responsable|Response */
     public function bulkUpdatePreview(Request $request)
     {
         $request->validate([
             'file' => 'required|mimes:xlsx,xls,csv|max:2048',
         ]);
 
-        $import = new EmployeeUpdateImport();
+        $import = new EmployeeUpdateImport;
         Excel::import($import, $request->file('file'));
 
         if ($import->previewData === []) {
@@ -177,6 +190,7 @@ class EmployeeController extends BaseAdminController
         return redirect()->route('admin.employees.bulk-update.confirm');
     }
 
+    /** @return Responsable|Response */
     public function bulkUpdatePreviewPage()
     {
         $previewData = session('import_employee_updates_preview', []);
@@ -191,11 +205,12 @@ class EmployeeController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function bulkUpdateStore()
     {
-        $previewData = session('import_employee_updates_preview', []);
+        $previewData = $this->validatedUpdatePreview(session('import_employee_updates_preview', []));
 
-        if ($previewData === [] || collect($previewData)->contains(fn ($row) => !($row['is_valid'] ?? false))) {
+        if ($previewData === null || $previewData === [] || array_filter($previewData, fn (array $row) => ! $row['is_valid']) !== []) {
             return redirect()->route('admin.employees.bulk-update.confirm')
                 ->with('error', 'Perbaiki semua baris yang tidak valid sebelum menyimpan.');
         }
@@ -216,10 +231,10 @@ class EmployeeController extends BaseAdminController
             $count = 0;
 
             foreach ($previewData as $row) {
-                $values = collect($row['changes'])
-                    ->only($allowedColumns)
-                    ->map(fn ($change) => $change['new'])
-                    ->all();
+                $values = [];
+                foreach (array_intersect_key($row['changes'], array_flip($allowedColumns)) as $column => $change) {
+                    $values[$column] = $change['new'];
+                }
 
                 if ($values === []) {
                     continue;
@@ -249,23 +264,26 @@ class EmployeeController extends BaseAdminController
             ->with('success', "Data $updated karyawan berhasil diperbarui.");
     }
 
+    /** @return Responsable|Response */
     public function downloadBulkUpdateTemplate()
     {
         return Excel::download(new EmployeeUpdateTemplateExport, 'template_update_karyawan.xlsx');
     }
 
+    /** @return Responsable|Response */
     public function salaryImportForm()
     {
         return $this->renderAdminPage('Admin/Employees/SalaryImport');
     }
 
+    /** @return Responsable|Response */
     public function salaryImportPreview(Request $request)
     {
         $request->validate([
             'file' => 'required|mimes:xlsx,xls,csv|max:2048',
         ]);
 
-        $import = new EmployeeSalaryImport();
+        $import = new EmployeeSalaryImport;
         Excel::import($import, $request->file('file'));
 
         if ($import->previewData === []) {
@@ -278,6 +296,7 @@ class EmployeeController extends BaseAdminController
         return redirect()->route('admin.employees.salary-import.confirm');
     }
 
+    /** @return Responsable|Response */
     public function salaryImportPreviewPage()
     {
         $previewData = session('import_employee_salaries_preview', []);
@@ -292,11 +311,12 @@ class EmployeeController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function salaryImportStore()
     {
-        $previewData = session('import_employee_salaries_preview', []);
+        $previewData = $this->validatedSalaryPreview(session('import_employee_salaries_preview', []));
 
-        if ($previewData === [] || collect($previewData)->contains(fn ($row) => !($row['is_valid'] ?? false))) {
+        if ($previewData === null || $previewData === [] || array_filter($previewData, fn (array $row) => ! $row['is_valid']) !== []) {
             return redirect()->route('admin.employees.salary-import.confirm')
                 ->with('error', 'Perbaiki semua baris yang tidak valid sebelum menyimpan data gaji.');
         }
@@ -318,7 +338,7 @@ class EmployeeController extends BaseAdminController
             foreach ($previewData as $row) {
                 $employee = $employees->get($row['employee_code']);
 
-                if (!$employee || round((float) $employee->basic_salary, 2) !== round((float) $row['current_salary'], 2)) {
+                if (! $employee || round((float) $employee->basic_salary, 2) !== round((float) $row['current_salary'], 2)) {
                     return false;
                 }
             }
@@ -334,20 +354,22 @@ class EmployeeController extends BaseAdminController
 
         session()->forget('import_employee_salaries_preview');
 
-        if (!$updated) {
+        if (! $updated) {
             return redirect()->route('admin.employees.salary-import')
                 ->with('error', 'Data karyawan atau gaji berubah setelah pratinjau. Silakan unggah ulang file.');
         }
 
         return redirect()->route('admin.employees.index')
-            ->with('success', 'Data gaji ' . count($previewData) . ' karyawan berhasil diperbarui.');
+            ->with('success', 'Data gaji '.count($previewData).' karyawan berhasil diperbarui.');
     }
 
+    /** @return Responsable|Response */
     public function downloadSalaryTemplate()
     {
         return Excel::download(new EmployeeSalaryTemplateExport, 'template_import_gaji_karyawan.xlsx');
     }
 
+    /** @return Responsable|Response */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -364,7 +386,7 @@ class EmployeeController extends BaseAdminController
             'join_date' => 'required|date',
             'start_time' => 'nullable',
             'end_time' => 'nullable',
-            'basic_salary' => ($this->canViewSalary() ? 'required' : 'exclude') . '|numeric|min:0',
+            'basic_salary' => ($this->canViewSalary() ? 'required' : 'exclude').'|numeric|min:0',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
@@ -372,13 +394,13 @@ class EmployeeController extends BaseAdminController
 
         // --- GENERATE KODE KARYAWAN OTOMATIS ---
         // Format: YYYYMMXXX (4 Tahun, 2 Bulan, 3 Nomor Urut)
-        $joinDate = \Carbon\Carbon::parse($validated['join_date']);
+        $joinDate = Carbon::parse($validated['join_date']);
         $year = $joinDate->format('Y'); // Contoh: 2024
         $month = $joinDate->format('m'); // Contoh: 01
-        $prefix = $year . $month; // Hasil: 202401
+        $prefix = $year.$month; // Hasil: 202401
 
         // Cari kode terakhir di bulan dan tahun yang sama
-        $lastEmployee = Employee::where('employee_code', 'LIKE', $prefix . '%')
+        $lastEmployee = Employee::where('employee_code', 'LIKE', $prefix.'%')
             ->orderBy('employee_code', 'desc')
             ->first();
 
@@ -392,10 +414,10 @@ class EmployeeController extends BaseAdminController
         }
 
         // Format nomor urut jadi 3 digit (001, 002, dst)
-        $sequence = str_pad($newSequence, 3, '0', STR_PAD_LEFT);
+        $sequence = str_pad((string) $newSequence, 3, '0', STR_PAD_LEFT);
 
         // Gabungkan semua
-        $validated['employee_code'] = $prefix . $sequence;
+        $validated['employee_code'] = $prefix.$sequence;
         // ---------------------------------------
 
         if ($request->hasFile('photo')) {
@@ -405,9 +427,10 @@ class EmployeeController extends BaseAdminController
         Employee::create($validated);
 
         return redirect()->route('admin.employees.index')
-            ->with('success', 'Data Karyawan berhasil ditambahkan dengan Kode: ' . $validated['employee_code']);
+            ->with('success', 'Data Karyawan berhasil ditambahkan dengan Kode: '.$validated['employee_code']);
     }
 
+    /** @return Responsable|Response */
     public function show(Employee $employee)
     {
         return $this->renderAdminPage('Admin/Employees/Show', [
@@ -416,6 +439,7 @@ class EmployeeController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function edit(Employee $employee)
     {
         return $this->renderAdminPage('Admin/Employees/Edit', [
@@ -435,10 +459,91 @@ class EmployeeController extends BaseAdminController
         return $this->canViewSalary() ? $employee : $employee->makeHidden('basic_salary');
     }
 
+    /**
+     * @return list<array{
+     *     employee_code: string,
+     *     is_valid: bool,
+     *     changes: array<string, array{new: string}>
+     * }>|null
+     */
+    private function validatedUpdatePreview(mixed $preview): ?array
+    {
+        if (! is_array($preview) || ! array_is_list($preview)) {
+            return null;
+        }
+
+        $rows = [];
+        foreach ($preview as $row) {
+            if (
+                ! is_array($row)
+                || ! is_string($row['employee_code'] ?? null)
+                || ! is_bool($row['is_valid'] ?? null)
+                || ! is_array($row['changes'] ?? null)
+            ) {
+                return null;
+            }
+
+            $changes = [];
+            foreach ($row['changes'] as $column => $change) {
+                if (! is_string($column) || ! is_array($change) || ! is_string($change['new'] ?? null)) {
+                    return null;
+                }
+
+                $changes[$column] = ['new' => $change['new']];
+            }
+
+            $rows[] = [
+                'employee_code' => $row['employee_code'],
+                'is_valid' => $row['is_valid'],
+                'changes' => $changes,
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @return list<array{
+     *     employee_code: string,
+     *     new_salary: float,
+     *     current_salary: float,
+     *     is_valid: bool
+     * }>|null
+     */
+    private function validatedSalaryPreview(mixed $preview): ?array
+    {
+        if (! is_array($preview) || ! array_is_list($preview)) {
+            return null;
+        }
+
+        $rows = [];
+        foreach ($preview as $row) {
+            if (
+                ! is_array($row)
+                || ! is_string($row['employee_code'] ?? null)
+                || ! is_bool($row['is_valid'] ?? null)
+                || ! is_numeric($row['new_salary'] ?? null)
+                || ! is_numeric($row['current_salary'] ?? null)
+            ) {
+                return null;
+            }
+
+            $rows[] = [
+                'employee_code' => $row['employee_code'],
+                'new_salary' => (float) $row['new_salary'],
+                'current_salary' => (float) $row['current_salary'],
+                'is_valid' => $row['is_valid'],
+            ];
+        }
+
+        return $rows;
+    }
+
+    /** @return Responsable|Response */
     public function update(Request $request, Employee $employee)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id|unique:employees,user_id,' . $employee->id,
+            'user_id' => 'required|exists:users,id|unique:employees,user_id,'.$employee->id,
             // 'employee_code' => 'required|string|unique:employees,employee_code,' . $employee->id,
             'full_name' => 'required|string|max:255',
             'birth_place' => 'required|string|max:255',
@@ -451,7 +556,7 @@ class EmployeeController extends BaseAdminController
             'join_date' => 'required|date',
             'start_time' => 'nullable',
             'end_time' => 'nullable',
-            'basic_salary' => ($this->canViewSalary() ? 'required' : 'exclude') . '|numeric|min:0',
+            'basic_salary' => ($this->canViewSalary() ? 'required' : 'exclude').'|numeric|min:0',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
@@ -470,6 +575,7 @@ class EmployeeController extends BaseAdminController
             ->with('success', 'Data Karyawan berhasil diupdate.');
     }
 
+    /** @return Responsable|Response */
     public function destroy(Employee $employee)
     {
         if ($employee->photo_path) {

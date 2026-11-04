@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\Holiday;
+use Carbon\Carbon;
+use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use Symfony\Component\HttpFoundation\Response;
 
 class AttendanceController extends BaseAdminController
 {
+    /** @return Responsable|Response */
     public function index(Request $request)
     {
         $date = $request->input('date', Carbon::today()->toDateString());
@@ -35,6 +38,7 @@ class AttendanceController extends BaseAdminController
         ]);
     }
 
+    /** @return Responsable|Response */
     public function store(Request $request)
     {
         $date = $request->input('date');
@@ -67,6 +71,6 @@ class AttendanceController extends BaseAdminController
             }
         });
 
-        return redirect()->back()->with('success', 'Absensi tanggal ' . $date . ' berhasil disimpan.');
+        return redirect()->back()->with('success', 'Absensi tanggal '.$date.' berhasil disimpan.');
     }
 }

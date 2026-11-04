@@ -5,9 +5,8 @@ namespace App\Exports;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\Font;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class EmployeeTemplateExport implements FromArray, WithHeadings, WithStyles
 {
@@ -21,7 +20,7 @@ class EmployeeTemplateExport implements FromArray, WithHeadings, WithStyles
                 '2026-11-02',
                 'IT',
                 'Staff',
-                'Operator'
+                'Operator',
             ],
         ];
     }

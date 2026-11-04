@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SubMenu extends Model
 {
+    /** @use HasFactory<Factory<static>> */
     use HasFactory;
 
     protected $fillable = [
@@ -20,7 +23,8 @@ class SubMenu extends Model
     /**
      * Relasi: satu SubMenu milik satu Menu (kebalikan dari subMenus()).
      */
-    public function menu()
+    /** @return BelongsTo<Menu, $this> */
+    public function menu(): BelongsTo
     {
         return $this->belongsTo(Menu::class);
     }
