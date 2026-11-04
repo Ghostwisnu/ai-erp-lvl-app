@@ -57,11 +57,11 @@ export default function Index({
 
     const toggleFullscreen = () => {
         if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
+            void document.documentElement.requestFullscreen();
             setIsFullscreen(true);
         } else {
             if (document.exitFullscreen) {
-                document.exitFullscreen();
+                void document.exitFullscreen();
                 setIsFullscreen(false);
             }
         }

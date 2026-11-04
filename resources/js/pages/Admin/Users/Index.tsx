@@ -18,7 +18,7 @@ interface Props {
         total: number;
         links: { url: string | null; label: string; active: boolean }[];
     };
-    roles: string[];
+    roles?: string[];
     filters: { search: string; role: string };
 }
 

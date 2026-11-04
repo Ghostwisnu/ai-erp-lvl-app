@@ -1,4 +1,3 @@
-import { Link } from '@inertiajs/react';
 import { LogOut, Settings } from 'lucide-react';
 import {
     DropdownMenuContent,

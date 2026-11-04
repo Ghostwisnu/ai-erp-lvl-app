@@ -11,7 +11,7 @@ type Props = {
     passwordRules: string;
 };
 
-export default function Register({ passwordRules }: Props) {
+export default function Register(_props: Props) {
     // useForm otomatis menangani state error (validasi dari Laravel)
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',

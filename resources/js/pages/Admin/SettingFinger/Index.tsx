@@ -29,7 +29,7 @@ export default function Index() {
                 port,
             });
             setResults(response.data.results);
-        } catch (error: any) {
+        } catch {
             alert('Terjadi kesalahan sistem saat mengetes.');
         } finally {
             setLoading(false);

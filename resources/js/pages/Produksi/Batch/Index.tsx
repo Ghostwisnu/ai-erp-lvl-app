@@ -21,7 +21,7 @@ export default function Index({ spk }: any) {
     const hasBatches = spk?.batches && spk.batches.length > 0;
 
     // Siapkan state untuk form split
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing } = useForm({
         batches: [
             {
                 batch_code: 'B1',

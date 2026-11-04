@@ -2,7 +2,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
 
 export default function Import() {
-    const { data, setData, post, processing, errors } = useForm({
+    const { setData, post, processing, errors } = useForm({
         file: null as File | null,
     });
 
