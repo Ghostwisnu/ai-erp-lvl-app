@@ -56,15 +56,16 @@ export default function Index({
     };
 
     const toggleFullscreen = () => {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
-            setIsFullscreen(true);
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-                setIsFullscreen(false);
-            }
-        }
+        const transition = document.fullscreenElement
+            ? document.exitFullscreen()
+            : document.documentElement.requestFullscreen();
+
+        transition
+            .then(() => setIsFullscreen(Boolean(document.fullscreenElement)))
+            .catch((error: unknown) => {
+                console.error('Failed to toggle fullscreen mode.', error);
+                alert('Tidak dapat mengubah mode layar penuh.');
+            });
     };
 
     const topDefect =

@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { FormEvent, useState } from 'react';
+import { FormEvent } from 'react';
 
 export default function Create() {
     const { data, setData, post, processing, errors } = useForm({

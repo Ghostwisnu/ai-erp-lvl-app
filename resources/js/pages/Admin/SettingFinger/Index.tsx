@@ -26,7 +26,7 @@ export default function Index() {
         try {
             const response = await axios.post('/admin/setting-finger/test', { ips, port });
             setResults(response.data.results);
-        } catch (error: any) {
+        } catch {
             alert('Terjadi kesalahan sistem saat mengetes.');
         } finally {
             setLoading(false);

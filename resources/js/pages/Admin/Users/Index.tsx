@@ -22,7 +22,7 @@ interface Props {
     filters: { search: string; role: string };
 }
 
-export default function Index({ users, roles = [], filters }: Props) {
+export default function Index({ users, roles, filters }: Props) {
     const [search, setSearch] = useState(filters?.search ?? '');
     const [selectedRole, setSelectedRole] = useState(filters?.role ?? '');
     const isFirstRender = useRef(true);

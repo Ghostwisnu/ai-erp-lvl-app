@@ -11,7 +11,7 @@ export default function Index({
     const [selectedSpkId, setSelectedSpkId] = useState(selectedSpk?.id || '');
 
     // Form untuk tambah defect
-    const { data, setData, post, processing, reset } = useForm({
+    const { data, setData, post, reset } = useForm({
         spk_id: selectedSpk?.id || '',
         defect_category_id: '',
         department: department,

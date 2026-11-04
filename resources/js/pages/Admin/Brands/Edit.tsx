@@ -2,7 +2,7 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEvent } from 'react';
 
 export default function Edit({ brand }: any) {
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, put, processing } = useForm({
         name: brand.name,
         code: brand.code,
         description: brand.description || '',

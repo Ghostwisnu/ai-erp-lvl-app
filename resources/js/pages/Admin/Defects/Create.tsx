@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function Create({ brands }: any) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing } = useForm({
         brand_id: '',
         name: '',
         description: '',
