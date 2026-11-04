@@ -111,6 +111,8 @@ jobs:
 
       - name: Configure SSH
         env:
+          HOSTINGER_HOST: ${{ vars.HOSTINGER_HOST }}
+          HOSTINGER_SSH_PORT: ${{ vars.HOSTINGER_SSH_PORT }}
           HOSTINGER_SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
           HOSTINGER_KNOWN_HOSTS: ${{ secrets.HOSTINGER_KNOWN_HOSTS }}
         run: |
@@ -120,6 +122,28 @@ jobs:
           chmod 600 "$HOME/.ssh/id_ed25519"
           printf '%s\n' "$HOSTINGER_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
+          HOSTINGER_ENDPOINT="[$HOSTINGER_HOST]:$HOSTINGER_SSH_PORT"
+          if ! ssh-keygen -F "$HOSTINGER_ENDPOINT" -f "$HOME/.ssh/known_hosts" >/dev/null; then
+            KNOWN_HOSTS_ALIAS="$(mktemp)"
+            awk -v host="$HOSTINGER_HOST" -v endpoint="$HOSTINGER_ENDPOINT" '
+              /^[[:space:]]*#/ || NF < 3 { next }
+              {
+                host_field = ($1 ~ /^@/) ? 2 : 1
+                if ($host_field == host) {
+                  $host_field = endpoint
+                  print
+                }
+              }
+            ' "$HOME/.ssh/known_hosts" > "$KNOWN_HOSTS_ALIAS"
+            if [ -s "$KNOWN_HOSTS_ALIAS" ]; then
+              cat "$KNOWN_HOSTS_ALIAS" >> "$HOME/.ssh/known_hosts"
+            fi
+            rm -f "$KNOWN_HOSTS_ALIAS"
+          fi
+          if ! ssh-keygen -F "$HOSTINGER_ENDPOINT" -f "$HOME/.ssh/known_hosts" >/dev/null; then
+            echo "::error::HOSTINGER_KNOWN_HOSTS must pin $HOSTINGER_ENDPOINT or the bare HOSTINGER_HOST."
+            exit 1
+          fi
 
       - name: Upload and activate release
         env:
