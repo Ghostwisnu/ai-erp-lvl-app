@@ -4,7 +4,6 @@ use App\Enums\TeamRole;
 use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Models\User;
-use Inertia\Testing\AssertableInertia as Assert;
 
 test('guests are redirected to the login page', function () {
     $user = User::factory()->create();
@@ -16,16 +15,15 @@ test('guests are redirected to the login page', function () {
 
 test('authenticated users can visit the dashboard', function () {
     $user = User::factory()->create();
-    $team = $user->currentTeam;
 
     $response = $this
         ->actingAs($user)
         ->get(route('dashboard'));
 
-    $response->assertOk();
+    $response->assertRedirect('/settings/profile');
 });
 
-test('dashboard includes pending invitations for the authenticated user', function () {
+test('dashboard redirects when the user has a pending invitation', function () {
     $owner = User::factory()->create(['name' => 'Taylor Otwell']);
     $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
     $team = Team::factory()->create(['name' => 'Laravel Team']);
@@ -42,19 +40,10 @@ test('dashboard includes pending invitations for the authenticated user', functi
         ->actingAs($invitedUser)
         ->get(route('dashboard'));
 
-    $response->assertOk();
-    $response->assertInertia(fn (Assert $page) => $page
-        ->component('dashboard')
-        ->has('pendingInvitations', 1)
-        ->where('pendingInvitations.0.code', $invitation->code)
-        ->where('pendingInvitations.0.inviterName', 'Taylor Otwell')
-        ->where('pendingInvitations.0.team.name', 'Laravel Team')
-        ->where('pendingInvitations.0.team.slug', $team->slug)
-        ->missing('pendingInvitations.0.teamName'),
-    );
+    $response->assertRedirect('/settings/profile');
 });
 
-test('dashboard does not include accepted invitations', function () {
+test('dashboard redirects when the user has an accepted invitation', function () {
     $owner = User::factory()->create();
     $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
     $team = Team::factory()->create();
@@ -71,14 +60,10 @@ test('dashboard does not include accepted invitations', function () {
         ->actingAs($invitedUser)
         ->get(route('dashboard'));
 
-    $response->assertOk();
-    $response->assertInertia(fn (Assert $page) => $page
-        ->component('dashboard')
-        ->has('pendingInvitations', 0),
-    );
+    $response->assertRedirect('/settings/profile');
 });
 
-test('dashboard excludes expired invitations without deleting them', function () {
+test('dashboard redirects without deleting expired invitations', function () {
     $owner = User::factory()->create();
     $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
     $team = Team::factory()->create();
@@ -95,18 +80,14 @@ test('dashboard excludes expired invitations without deleting them', function ()
         ->actingAs($invitedUser)
         ->get(route('dashboard'));
 
-    $response->assertOk();
-    $response->assertInertia(fn (Assert $page) => $page
-        ->component('dashboard')
-        ->has('pendingInvitations', 0),
-    );
+    $response->assertRedirect('/settings/profile');
 
     $this->assertDatabaseHas('team_invitations', [
         'id' => $invitation->id,
     ]);
 });
 
-test('dashboard does not include or delete other users invitations', function () {
+test('dashboard redirects without deleting another users invitations', function () {
     $owner = User::factory()->create();
     $invitedUser = User::factory()->create(['email' => 'invited@example.com']);
     $team = Team::factory()->create();
@@ -123,11 +104,7 @@ test('dashboard does not include or delete other users invitations', function ()
         ->actingAs($invitedUser)
         ->get(route('dashboard'));
 
-    $response->assertOk();
-    $response->assertInertia(fn (Assert $page) => $page
-        ->component('dashboard')
-        ->has('pendingInvitations', 0),
-    );
+    $response->assertRedirect('/settings/profile');
 
     $this->assertDatabaseHas('team_invitations', [
         'id' => $invitation->id,
