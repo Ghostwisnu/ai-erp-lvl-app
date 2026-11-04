@@ -8,7 +8,7 @@ on the server between deployments.
 
 ## 1. Prepare Hostinger
 
-1. In hPanel, select PHP 8.3 or later and enable the PHP extensions required by
+1. In hPanel, select PHP 8.4.1 or later and enable the PHP extensions required by
    the application, including `gmp`, `pdo_mysql`, `mbstring`, `fileinfo`, `gd`,
    `intl`, and `zip`.
 2. Enable SSH access and add a public SSH key. Keep its private key for the

@@ -22,7 +22,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           tools: composer:v2
           coverage: none
 
@@ -77,7 +77,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           tools: composer:v2
           extensions: bcmath, curl, dom, fileinfo, gd, gmp, intl, mbstring, pdo_mysql, xml, zip
           coverage: none
@@ -153,7 +153,7 @@ jobs:
             echo "$PUBLIC_PATH/storage exists and is not a symlink; move its contents before deploying." >&2
             exit 1
           fi
-          php -r 'if (PHP_VERSION_ID < 80300) { fwrite(STDERR, "PHP 8.3 or later is required.\n"); exit(1); }'
+          php -r 'if (PHP_VERSION_ID < 80401) { fwrite(STDERR, "PHP 8.4.1 or later is required.\n"); exit(1); }'
 
           RELEASES_PATH="$APP_PATH/releases"
           RELEASE_PATH="$RELEASES_PATH/$RELEASE_ID"
