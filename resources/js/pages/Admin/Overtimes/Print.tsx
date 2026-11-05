@@ -25,7 +25,7 @@ export default function Print({ overtime }: any) {
                         margin: 15mm 15mm; 
                     }
 
-                    /* 2. Biarkan konten mengalir normal agar otomatis lanjut ke halaman berikutnya */
+                /* 2. Biarkan konten mengalir normal */
                     html, body {
                         height: auto !important;
                         overflow: visible !important;
@@ -80,7 +80,7 @@ export default function Print({ overtime }: any) {
                         onClick={handlePrint}
                         className="inline-block rounded bg-green-600 px-4 py-2 font-bold text-white shadow hover:bg-green-700"
                     >
-                        ðŸ–¨ï¸ Print / Save PDF
+                        Print / Save PDF
                     </button>
                     <button
                         onClick={() => window.close()}
@@ -334,7 +334,7 @@ export default function Print({ overtime }: any) {
                                 month: 'long',
                                 year: 'numeric',
                             })}{' '}
-                            {new Date().toLocaleTimeString('id-ID')} â€”
+                            {new Date().toLocaleTimeString('id-ID')} -
                             FR-HRD-04-03
                         </i>
                     </div>
