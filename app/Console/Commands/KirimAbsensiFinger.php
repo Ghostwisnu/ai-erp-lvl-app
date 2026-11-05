@@ -2,9 +2,12 @@
 
 namespace App\Console\Commands;
 
+use Carbon\Carbon;
 use HafizAsifAli\ZkTeco\ZkDevice;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
+use RuntimeException;
+use Throwable;
 
 class KirimAbsensiFinger extends Command
 {
@@ -37,7 +40,7 @@ class KirimAbsensiFinger extends Command
                 foreach ($punches as $punch) {
                     $payload[] = [
                         'pin' => (string) $punch->userId,
-                        'scan_time' => \Carbon\Carbon::parse($punch->timestamp)->format('Y-m-d H:i:s'),
+                        'scan_time' => Carbon::parse($punch->timestamp)->format('Y-m-d H:i:s'),
                     ];
                 }
 
@@ -46,7 +49,7 @@ class KirimAbsensiFinger extends Command
                         ->post($url, ['punches' => $chunk]);
 
                     if ($response->failed()) {
-                        throw new \RuntimeException('Server menolak: HTTP '.$response->status().' '.$response->body());
+                        throw new RuntimeException('Server menolak: HTTP '.$response->status().' '.$response->body());
                     }
 
                     $this->info("  terkirim {$response->json('received')}, baru {$response->json('saved')}");
@@ -55,7 +58,7 @@ class KirimAbsensiFinger extends Command
                 if (! $payload) {
                     $this->info('  tidak ada data');
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $failed = true;
                 $this->error("  Gagal ({$ip}): ".$e->getMessage());
             }

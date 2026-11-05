@@ -4,11 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Services\FingerPunchService;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class FingerPushController extends Controller
 {
-    public function store(Request $request, FingerPunchService $service)
+    public function store(Request $request, FingerPunchService $service): JsonResponse
     {
         $token = (string) config('services.finger.token');
         if ($token === '' || ! hash_equals($token, (string) $request->bearerToken())) {
