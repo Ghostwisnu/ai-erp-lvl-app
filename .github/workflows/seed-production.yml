@@ -1,0 +1,83 @@
+name: seed-production
+
+on:
+  workflow_dispatch:
+    inputs:
+      seeder:
+        description: 'Seeder class (kosongkan untuk DatabaseSeeder)'
+        required: false
+        default: ''
+      confirm:
+        description: 'Ketik SEED untuk konfirmasi'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  seed:
+    name: Seed Hostinger database
+    runs-on: ubuntu-latest
+    if: inputs.confirm == 'SEED'
+    concurrency:
+      group: hostinger-production
+      cancel-in-progress: false
+    steps:
+      - name: Run seeder over SSH
+        env:
+          HOSTINGER_HOST: ${{ vars.HOSTINGER_HOST }}
+          HOSTINGER_USER: ${{ vars.HOSTINGER_USER }}
+          HOSTINGER_SSH_PORT: ${{ vars.HOSTINGER_SSH_PORT }}
+          HOSTINGER_APP_PATH: ${{ vars.HOSTINGER_APP_PATH }}
+          HOSTINGER_SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          HOSTINGER_KNOWN_HOSTS: ${{ secrets.HOSTINGER_KNOWN_HOSTS }}
+          SEEDER: ${{ inputs.seeder }}
+        run: |
+          set -euo pipefail
+          for name in HOSTINGER_HOST HOSTINGER_USER HOSTINGER_SSH_PORT HOSTINGER_APP_PATH HOSTINGER_SSH_KEY HOSTINGER_KNOWN_HOSTS; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Set the GitHub variable or secret $name first."
+              exit 1
+            fi
+          done
+          HOSTINGER_USER="${HOSTINGER_USER#"${HOSTINGER_USER%%[![:space:]]*}"}"
+          HOSTINGER_USER="${HOSTINGER_USER%"${HOSTINGER_USER##*[![:space:]]}"}"
+          if [[ ! "$HOSTINGER_SSH_PORT" =~ ^[0-9]+$ || ! "$HOSTINGER_USER" =~ ^[a-zA-Z0-9._-]+$ || "$HOSTINGER_APP_PATH" != /* ]]; then
+            echo "::error::Invalid SSH port, user, or app path."
+            exit 1
+          fi
+          if [ -n "$SEEDER" ] && [[ ! "$SEEDER" =~ ^[A-Za-z0-9_\\]+$ ]]; then
+            echo "::error::Invalid seeder class name."
+            exit 1
+          fi
+
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$HOSTINGER_SSH_KEY" > "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+          printf '%s\n' "$HOSTINGER_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+          if [ "$HOSTINGER_SSH_PORT" = 22 ]; then
+            ALIAS="$HOSTINGER_HOST"
+          else
+            ALIAS="[$HOSTINGER_HOST]:$HOSTINGER_SSH_PORT"
+          fi
+          if ! ssh-keygen -F "$ALIAS" -f "$HOME/.ssh/known_hosts" >/dev/null; then
+            ALIAS="$HOSTINGER_HOST"
+          fi
+
+          printf -v APP_ARG '%q' "$HOSTINGER_APP_PATH"
+          printf -v SEEDER_ARG '%q' "$SEEDER"
+          # shellcheck disable=SC2029
+          ssh -p "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes -o "HostKeyAlias=$ALIAS" \
+            "$HOSTINGER_USER@$HOSTINGER_HOST" "bash -s -- $APP_ARG $SEEDER_ARG" <<'REMOTE'
+          set -euo pipefail
+          cd "$1/current"
+          PHP_BIN=/opt/alt/php85/usr/bin/php
+          if [ -n "$2" ]; then
+            "$PHP_BIN" artisan db:seed --class="$2" --force --no-interaction
+          else
+            "$PHP_BIN" artisan db:seed --force --no-interaction
+          fi
+          REMOTE
