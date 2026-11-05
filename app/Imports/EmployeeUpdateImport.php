@@ -23,7 +23,7 @@ class EmployeeUpdateImport implements ToCollection, WithHeadingRow
         'no_telepon' => ['column' => 'phone_number', 'label' => 'No. Telepon', 'max' => 20],
         'alamat' => ['column' => 'address', 'label' => 'Alamat'],
         'departemen' => ['column' => 'department', 'label' => 'Departemen', 'max' => 255],
-        'jabatan' => ['column' => 'position', 'label' => 'Jabatan', 'max' => 255],
+        'posisi' => ['column' => 'position', 'label' => 'Posisi', 'max' => 255],
         'tanggal_bergabung' => ['column' => 'join_date', 'label' => 'Tanggal Bergabung', 'type' => 'date'],
     ];
 

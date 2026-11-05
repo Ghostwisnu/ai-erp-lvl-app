@@ -42,7 +42,7 @@ function uploadBulkUpdate(string $csv): void
 it('updates only filled columns and never touches salary', function () {
     $employee = makeBulkUpdateEmployee('UPD-001');
 
-    uploadBulkUpdate("kode_karyawan,nama,departemen,jabatan,tanggal_bergabung,jenis_kelamin,gaji_pokok\nUPD-001,Nama Baru,Gudang,,15/03/2021,p,99999999\n");
+    uploadBulkUpdate("kode_karyawan,nama,departemen,posisi,tanggal_bergabung,jenis_kelamin,gaji_pokok\nUPD-001,Nama Baru,Gudang,,15/03/2021,p,99999999\n");
 
     $this->get(route('admin.employees.bulk-update.confirm'))
         ->assertInertia(fn ($page) => $page
