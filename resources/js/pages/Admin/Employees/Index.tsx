@@ -1,16 +1,18 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Index({ employees, departments = [], filters }: any) {
     // State untuk Filter (diproses di server agar mencakup semua halaman)
     const [search, setSearch] = useState(filters?.search ?? '');
     const [selectedDept, setSelectedDept] = useState(filters?.department ?? '');
-    const isFirstRender = useRef(true);
 
     useEffect(() => {
-        if (isFirstRender.current) {
-            isFirstRender.current = false;
-
+        // Jangan request ulang (dan reset ke halaman 1) bila filter tidak berubah,
+        // misalnya saat berpindah halaman pagination.
+        if (
+            search === (filters?.search ?? '') &&
+            selectedDept === (filters?.department ?? '')
+        ) {
             return;
         }
 
@@ -26,6 +28,7 @@ export default function Index({ employees, departments = [], filters }: any) {
         }, 300);
 
         return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search, selectedDept]);
 
     const filteredEmployees = employees.data || [];

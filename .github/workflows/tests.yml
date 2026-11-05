@@ -68,6 +68,12 @@ jobs:
             echo "::error::HOSTINGER_SSH_PORT must be a numeric SSH port."
             exit 1
           fi
+<<<<<<< HEAD
+          if [[ "$HOSTINGER_USER" =~ [[:space:]] ]]; then
+            echo "::error::HOSTINGER_USER must not contain whitespace or line breaks."
+            exit 1
+          fi
+=======
           HOSTINGER_USER="${HOSTINGER_USER#"${HOSTINGER_USER%%[![:space:]]*}"}"
           HOSTINGER_USER="${HOSTINGER_USER%"${HOSTINGER_USER##*[![:space:]]}"}"
           if [[ ! "$HOSTINGER_USER" =~ ^[a-zA-Z0-9._-]+$ ]]; then
@@ -75,6 +81,7 @@ jobs:
             exit 1
           fi
           printf 'HOSTINGER_USER=%s\n' "$HOSTINGER_USER" >> "$GITHUB_ENV"
+>>>>>>> 8bb043a9591ef5df766e166ee839ad470eeb3dc3
 
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -155,6 +162,14 @@ jobs:
 
           RELEASE_ID="${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           REMOTE_ARCHIVE="hostinger-release-${RELEASE_ID}.tar.gz"
+<<<<<<< HEAD
+          SSH_OPTIONS=(-i "$HOME/.ssh/id_ed25519" -o BatchMode=yes -o StrictHostKeyChecking=yes)
+
+          scp -P "$HOSTINGER_SSH_PORT" "${SSH_OPTIONS[@]}" release.tar.gz "$HOSTINGER_USER@$HOSTINGER_HOST:$REMOTE_ARCHIVE"
+
+          ssh -p "$HOSTINGER_SSH_PORT" "${SSH_OPTIONS[@]}" "$HOSTINGER_USER@$HOSTINGER_HOST" \
+            "bash -s -- '$HOSTINGER_APP_PATH' '$HOSTINGER_PUBLIC_PATH' '$RELEASE_ID' '$REMOTE_ARCHIVE'" <<'REMOTE'
+=======
           printf -v APP_PATH_ARG '%q' "$HOSTINGER_APP_PATH"
           printf -v PUBLIC_PATH_ARG '%q' "$HOSTINGER_PUBLIC_PATH"
           SSH_OPTIONS=(-p "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" -o BatchMode=yes -o ConnectTimeout=20 -o StrictHostKeyChecking=yes -o "HostKeyAlias=$HOSTINGER_HOST_KEY_ALIAS")
@@ -175,6 +190,7 @@ jobs:
           # shellcheck disable=SC2029
           ssh "${SSH_OPTIONS[@]}" "$HOSTINGER_USER@$HOSTINGER_HOST" \
             "bash -s -- $APP_PATH_ARG $PUBLIC_PATH_ARG '$RELEASE_ID' '$REMOTE_ARCHIVE'" <<'REMOTE'
+>>>>>>> 8bb043a9591ef5df766e166ee839ad470eeb3dc3
           set -euo pipefail
           APP_PATH="$1"
           PUBLIC_PATH="$2"
