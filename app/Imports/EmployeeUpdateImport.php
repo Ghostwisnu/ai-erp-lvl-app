@@ -35,7 +35,7 @@ class EmployeeUpdateImport implements ToCollection, WithHeadingRow
     {
         $rows = $rows->map(fn ($row, $index) => [
             'row_number' => $index + 2,
-            'data' => \$row instanceof Collection ? \$row->all() : (array) \$row,
+            'data' => $row instanceof Collection ? $row->all() : (array) $row,
             'code' => trim((string) ($row['kode_karyawan'] ?? '')),
         ])->filter(fn (array $row) => $row['code'] !== '' || $this->hasAnyValue($row['data']));
 
