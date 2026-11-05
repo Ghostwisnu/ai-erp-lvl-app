@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingFingerController;
 use App\Http\Controllers\Admin\SubMenuController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\AdmsController;
 use App\Http\Controllers\Produksi\DefectController;
 use App\Http\Controllers\Produksi\MonitorQcController;
 use App\Http\Controllers\Produksi\ReportQcController;
@@ -27,9 +28,9 @@ use App\Http\Controllers\Produksi\SpkController;
 use Illuminate\Support\Facades\Route;
 
 // Endpoint ADMS (push data dari mesin finger)
-Route::match(['get', 'post'], 'iclock/cdata', [\App\Http\Controllers\AdmsController::class, 'cdata']);
-Route::get('iclock/getrequest', [\App\Http\Controllers\AdmsController::class, 'getrequest']);
-Route::post('iclock/devicecmd', [\App\Http\Controllers\AdmsController::class, 'devicecmd']);
+Route::match(['get', 'post'], 'iclock/cdata', [AdmsController::class, 'cdata']);
+Route::get('iclock/getrequest', [AdmsController::class, 'getrequest']);
+Route::post('iclock/devicecmd', [AdmsController::class, 'devicecmd']);
 
 // 1. Group Route Admin (Dilindungi Auth & Permission)
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
