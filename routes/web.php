@@ -151,7 +151,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // 4. Route Bawaan Starter Kit
-Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'login'))->name('home');
+Route::inertia('/', 'welcome')->name('home');
 
 // 5. Route Settings (Profil, dll)
 require __DIR__.'/settings.php';
