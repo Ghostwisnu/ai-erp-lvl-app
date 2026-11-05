@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingFingerController;
 use App\Http\Controllers\Admin\SubMenuController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\FingerPushController;
 use App\Http\Controllers\Produksi\DefectController;
 use App\Http\Controllers\Produksi\MonitorQcController;
 use App\Http\Controllers\Produksi\ReportQcController;
@@ -27,7 +28,7 @@ use App\Http\Controllers\Produksi\SpkController;
 use Illuminate\Support\Facades\Route;
 
 // Endpoint penerima data dari PC lokal (finger:kirim)
-Route::post('finger/push', [\App\Http\Controllers\FingerPushController::class, 'store']);
+Route::post('finger/push', [FingerPushController::class, 'store']);
 
 // 1. Group Route Admin (Dilindungi Auth & Permission)
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
