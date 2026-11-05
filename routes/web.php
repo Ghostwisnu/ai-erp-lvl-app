@@ -18,23 +18,16 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\SettingFingerController;
 use App\Http\Controllers\Admin\SubMenuController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\AdmsController;
 use App\Http\Controllers\Produksi\DefectController;
 use App\Http\Controllers\Produksi\MonitorQcController;
 use App\Http\Controllers\Produksi\ReportQcController;
 use App\Http\Controllers\Produksi\ScanController;
 use App\Http\Controllers\Produksi\SpkBatchController;
 use App\Http\Controllers\Produksi\SpkController;
-use App\Http\Middleware\LogAdmsRequest;
 use Illuminate\Support\Facades\Route;
 
-// Endpoint ADMS (push data dari mesin finger)
-Route::middleware(LogAdmsRequest::class)->group(function () {
-    Route::match(['get', 'post'], 'iclock/cdata', [AdmsController::class, 'cdata']);
-    Route::get('iclock/getrequest', [AdmsController::class, 'getrequest']);
-    Route::post('iclock/devicecmd', [AdmsController::class, 'devicecmd']);
-    Route::any('iclock/{any}', [AdmsController::class, 'getrequest'])->where('any', '.*');
-});
+// Endpoint penerima data dari PC lokal (finger:kirim)
+Route::post('finger/push', [\App\Http\Controllers\FingerPushController::class, 'store']);
 
 // 1. Group Route Admin (Dilindungi Auth & Permission)
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {

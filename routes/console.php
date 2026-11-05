@@ -12,4 +12,4 @@ Schedule::call(function () {
 
 // Jalankan setiap tanggal 1 Januari jam 00:01 untuk mengambil libur tahun baru
 Schedule::command('holidays:fetch')->yearlyOn(1, 1, '00:01');
-Schedule::command('finger:tarik')->everyMinute();
+// finger:kirim dijalankan di PC lokal lewat Task Scheduler, bukan di hosting

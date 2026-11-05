@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'finger' => [
+        'token' => env('FINGER_API_TOKEN'),
+        'remote_url' => env('FINGER_REMOTE_URL'),
+        'machines' => env('FINGER_MACHINES'),
+    ],
+
 ];
