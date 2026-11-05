@@ -36,6 +36,8 @@ class PermissionSeeder extends Seeder
             'manage-master-data',
             'manage-produksi',
             'manage-hris',
+            'manage-assets',
+            'manage-payroll',
         ];
 
         foreach ($permissions as $permission) {
