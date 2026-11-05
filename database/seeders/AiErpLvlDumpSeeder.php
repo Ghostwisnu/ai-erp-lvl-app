@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use RuntimeException;
 
 /**
  * Imports the data (INSERT statements) from database/seeders/sql/ai_erp_lvl.sql.
@@ -19,6 +20,10 @@ class AiErpLvlDumpSeeder extends Seeder
     {
         $path = database_path('seeders/sql/ai_erp_lvl.sql');
         $sql = file_get_contents($path);
+
+        if ($sql === false) {
+            throw new RuntimeException('Unable to read the database dump.');
+        }
 
         preg_match_all('/^INSERT INTO `(\w+)`.*?\);[ \t]*$/ms', $sql, $matches, PREG_SET_ORDER);
 
@@ -36,6 +41,7 @@ class AiErpLvlDumpSeeder extends Seeder
                 DB::table($table)->truncate();
 
                 foreach ($inserts as $insert) {
+                    /** @var literal-string $insert */
                     DB::unprepared($insert);
                 }
             }
