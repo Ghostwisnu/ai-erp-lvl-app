@@ -1,4 +1,4 @@
-import { Head } from "@inertiajs/react";
+import { Head } from '@inertiajs/react';
 
 export default function Print({ overtime }: any) {
     const totalDuration = overtime.employees.reduce(
@@ -73,7 +73,7 @@ export default function Print({ overtime }: any) {
             />
 
             {/* Kontainer Utama - HANYA ini yang tercetak */}
-            <div className="print-area relative min-h-screen w-full bg-white print:min-h-0 font-serif text-black">
+            <div className="print-area relative min-h-screen w-full bg-white font-serif text-black print:min-h-0">
                 {/* Tombol Kontrol (Hanya tampil di layar) */}
                 <div className="no-print fixed top-4 right-4 z-[9999] space-x-2">
                     <button
@@ -100,7 +100,7 @@ export default function Print({ overtime }: any) {
                                 alt="Logo Perusahaan"
                                 className="w-32 object-contain"
                                 onError={(e) => {
-                                    e.currentTarget.style.display = "none";
+                                    e.currentTarget.style.display = 'none';
                                 }}
                             />
                         </div>
@@ -132,14 +132,14 @@ export default function Print({ overtime }: any) {
                                         Tanggal Lembur
                                     </span>
                                     <span>
-                                        :{" "}
+                                        :{' '}
                                         {new Date(
                                             overtime.date,
-                                        ).toLocaleDateString("id-ID", {
-                                            weekday: "long",
-                                            day: "numeric",
-                                            month: "long",
-                                            year: "numeric",
+                                        ).toLocaleDateString('id-ID', {
+                                            weekday: 'long',
+                                            day: 'numeric',
+                                            month: 'long',
+                                            year: 'numeric',
                                         })}
                                     </span>
                                 </div>
@@ -164,13 +164,13 @@ export default function Print({ overtime }: any) {
                                         Tanggal Terbit
                                     </span>
                                     <span>
-                                        :{" "}
+                                        :{' '}
                                         {new Date().toLocaleDateString(
-                                            "id-ID",
+                                            'id-ID',
                                             {
-                                                day: "numeric",
-                                                month: "long",
-                                                year: "numeric",
+                                                day: 'numeric',
+                                                month: 'long',
+                                                year: 'numeric',
                                             },
                                         )}
                                     </span>
@@ -237,13 +237,13 @@ export default function Print({ overtime }: any) {
                                             {emp.full_name}
                                         </td>
                                         <td className="border border-black p-1 uppercase">
-                                            {emp.position || "OPERATOR"}
+                                            {emp.position || 'OPERATOR'}
                                         </td>
                                         <td className="border border-black p-1 text-center font-bold">
                                             {parseFloat(emp.pivot.duration)}
                                         </td>
                                         <td className="border border-black p-1">
-                                            {emp.pivot.mutation_reason || "-"}
+                                            {emp.pivot.mutation_reason || '-'}
                                         </td>
                                     </tr>
                                 ),
@@ -294,9 +294,9 @@ export default function Print({ overtime }: any) {
                             <div>
                                 <p className="mb-16">Dibuat oleh,</p>
                                 <p className="font-bold uppercase underline">
-                                    ({" "}
+                                    ({' '}
                                     {overtime.creator?.name ||
-                                        "........................"}{" "}
+                                        '........................'}{' '}
                                     )
                                 </p>
                                 <p>Staff</p>
@@ -328,13 +328,13 @@ export default function Print({ overtime }: any) {
                     {/* Footer */}
                     <div className="mt-8 border-t border-black pt-2 text-center text-[9px] text-gray-500">
                         <i>
-                            Dokumen ini dicetak otomatis dari sistem HRIS pada{" "}
-                            {new Date().toLocaleDateString("id-ID", {
-                                day: "numeric",
-                                month: "long",
-                                year: "numeric",
-                            })}{" "}
-                            {new Date().toLocaleTimeString("id-ID")} -
+                            Dokumen ini dicetak otomatis dari sistem HRIS pada{' '}
+                            {new Date().toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric',
+                            })}{' '}
+                            {new Date().toLocaleTimeString('id-ID')} -
                             FR-HRD-04-03
                         </i>
                     </div>
