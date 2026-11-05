@@ -3,7 +3,10 @@ import AppLogoIcon from '@/components/app-logo-icon';
 import { Button } from '@/components/ui/button';
 
 export default function Welcome() {
-    const { name, auth } = usePage<{ name: string; auth?: { user?: unknown } }>().props;
+    const { name, auth } = usePage<{
+        name: string;
+        auth?: { user?: unknown };
+    }>().props;
     const loggedIn = Boolean(auth?.user);
 
     return (
@@ -12,9 +15,12 @@ export default function Welcome() {
             <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-background px-6 text-center">
                 <AppLogoIcon className="h-32 w-32 rounded-xl" />
                 <div className="space-y-3">
-                    <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">{name}</h1>
+                    <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
+                        {name}
+                    </h1>
                     <p className="mx-auto max-w-xl text-muted-foreground">
-                        Sistem ERP terpadu untuk mengelola produksi, QC, lembur, dan operasional perusahaan Anda.
+                        Sistem ERP terpadu untuk mengelola produksi, QC, lembur,
+                        dan operasional perusahaan Anda.
                     </p>
                 </div>
                 <Button asChild size="lg">
