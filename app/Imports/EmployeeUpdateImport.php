@@ -30,12 +30,12 @@ class EmployeeUpdateImport implements ToCollection, WithHeadingRow
     /** @var list<array{row_number: int, employee_code: string, full_name: string|null, changes: array<string, array{label: string, old: mixed, new: string}>, status: string, is_valid: bool}> */
     public array $previewData = [];
 
-    /** @param Collection<int, array<string, mixed>> $rows */
+    /** @param Collection<int, Collection<string, mixed>|array<string, mixed>> $rows */
     public function collection(Collection $rows): void
     {
         $rows = $rows->map(fn ($row, $index) => [
             'row_number' => $index + 2,
-            'data' => $row,
+            'data' => $row instanceof Collection ? $row->all() : (array) $row,
             'code' => trim((string) ($row['kode_karyawan'] ?? '')),
         ])->filter(fn (array $row) => $row['code'] !== '' || $this->hasAnyValue($row['data']));
 
