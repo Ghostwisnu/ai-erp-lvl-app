@@ -157,10 +157,19 @@ jobs:
           REMOTE_ARCHIVE="hostinger-release-${RELEASE_ID}.tar.gz"
           printf -v APP_PATH_ARG '%q' "$HOSTINGER_APP_PATH"
           printf -v PUBLIC_PATH_ARG '%q' "$HOSTINGER_PUBLIC_PATH"
-          SSH_OPTIONS=(-p "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" -o BatchMode=yes -o StrictHostKeyChecking=yes -o "HostKeyAlias=$HOSTINGER_HOST_KEY_ALIAS")
-          SCP_OPTIONS=(-P "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" -o BatchMode=yes -o StrictHostKeyChecking=yes -o "HostKeyAlias=$HOSTINGER_HOST_KEY_ALIAS")
+          SSH_OPTIONS=(-p "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" -o BatchMode=yes -o ConnectTimeout=20 -o StrictHostKeyChecking=yes -o "HostKeyAlias=$HOSTINGER_HOST_KEY_ALIAS")
+          SCP_OPTIONS=(-P "$HOSTINGER_SSH_PORT" -i "$HOME/.ssh/id_ed25519" -o BatchMode=yes -o ConnectTimeout=20 -o StrictHostKeyChecking=yes -o "HostKeyAlias=$HOSTINGER_HOST_KEY_ALIAS")
 
-          scp "${SCP_OPTIONS[@]}" release.tar.gz "$HOSTINGER_USER@$HOSTINGER_HOST:$REMOTE_ARCHIVE"
+          for attempt in 1 2 3; do
+            if scp "${SCP_OPTIONS[@]}" release.tar.gz "$HOSTINGER_USER@$HOSTINGER_HOST:$REMOTE_ARCHIVE"; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Unable to upload the release after 3 attempts."
+              exit 1
+            fi
+            sleep 10
+          done
 
           # The path arguments are Bash-escaped for the remote command above.
           # shellcheck disable=SC2029
