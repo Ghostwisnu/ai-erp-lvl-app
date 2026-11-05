@@ -4,7 +4,7 @@ import { FormEvent } from 'react';
 export default function Profile() {
     const { auth } = usePage<any>().props;
 
-    const { data, setData, put, processing, errors } = useForm({
+    const { data, setData, patch, processing, errors } = useForm({
         name: auth?.user?.name || '',
         email: auth?.user?.email || '',
         password: '',
@@ -13,7 +13,7 @@ export default function Profile() {
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        put('/settings/profile');
+        patch('/settings/profile');
     };
 
     return (
