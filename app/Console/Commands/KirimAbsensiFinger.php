@@ -40,7 +40,7 @@ class KirimAbsensiFinger extends Command
                         $device = ZkDevice::make($ip, commKey: 0, transport: 'tcp', timezone: 'Asia/Jakarta', timeout: (int) $this->option('timeout'));
                         $punches = $device->session(fn ($d) => $d->attendance()->since($this->option('since')));
                         break;
-                    } catch (\Throwable $e) {
+                    } catch (Throwable $e) {
                         if ($i === $attempts) {
                             throw $e;
                         }
