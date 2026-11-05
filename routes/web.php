@@ -27,9 +27,12 @@ use App\Http\Controllers\Produksi\SpkController;
 use Illuminate\Support\Facades\Route;
 
 // Endpoint ADMS (push data dari mesin finger)
-Route::match(['get', 'post'], 'iclock/cdata', [\App\Http\Controllers\AdmsController::class, 'cdata']);
-Route::get('iclock/getrequest', [\App\Http\Controllers\AdmsController::class, 'getrequest']);
-Route::post('iclock/devicecmd', [\App\Http\Controllers\AdmsController::class, 'devicecmd']);
+Route::middleware(\App\Http\Middleware\LogAdmsRequest::class)->group(function () {
+    Route::match(['get', 'post'], 'iclock/cdata', [\App\Http\Controllers\AdmsController::class, 'cdata']);
+    Route::get('iclock/getrequest', [\App\Http\Controllers\AdmsController::class, 'getrequest']);
+    Route::post('iclock/devicecmd', [\App\Http\Controllers\AdmsController::class, 'devicecmd']);
+    Route::any('iclock/{any}', [\App\Http\Controllers\AdmsController::class, 'getrequest'])->where('any', '.*');
+});
 
 // 1. Group Route Admin (Dilindungi Auth & Permission)
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
