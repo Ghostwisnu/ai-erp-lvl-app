@@ -7,12 +7,13 @@ use App\Models\Employee;
 use App\Models\FingerLog;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 
 class AdmsController extends Controller
 {
     // Handshake mesin (GET) dan penerimaan data (POST)
-    public function cdata(Request $request)
+    public function cdata(Request $request): Response
     {
         if ($request->isMethod('get')) {
             $sn = $request->query('SN');
@@ -27,7 +28,7 @@ class AdmsController extends Controller
 
         if (strtoupper((string) $request->query('table')) === 'ATTLOG') {
             $count = 0;
-            foreach (preg_split('/\r\n|\r|\n/', trim($request->getContent())) as $line) {
+            foreach (preg_split('/\r\n|\r|\n/', trim($request->getContent())) ?: [] as $line) {
                 $cols = explode("\t", trim($line));
                 if (count($cols) < 2 || $cols[0] === '') {
                     continue;
@@ -47,12 +48,12 @@ class AdmsController extends Controller
         return $this->plain('OK');
     }
 
-    public function getrequest()
+    public function getrequest(): Response
     {
         return $this->plain('OK');
     }
 
-    public function devicecmd()
+    public function devicecmd(): Response
     {
         return $this->plain('OK');
     }
@@ -84,7 +85,7 @@ class AdmsController extends Controller
         $attendance->save();
     }
 
-    private function plain(string $body)
+    private function plain(string $body): Response
     {
         return response($body, 200)->header('Content-Type', 'text/plain');
     }
