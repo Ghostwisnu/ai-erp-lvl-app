@@ -229,14 +229,14 @@ jobs:
 
           define('LARAVEL_START', microtime(true));
 
-          if (file_exists(\$maintenance = '$APP_PATH/current/storage/framework/maintenance.php')) {
+          if (file_exists(\$maintenance = '$RELEASE_PATH/storage/framework/maintenance.php')) {
               require \$maintenance;
           }
 
-          require '$APP_PATH/current/vendor/autoload.php';
+          require '$RELEASE_PATH/vendor/autoload.php';
 
           /** @var Application \$app */
-          \$app = require_once '$APP_PATH/current/bootstrap/app.php';
+          \$app = require_once '$RELEASE_PATH/bootstrap/app.php';
 
           \$app->handleRequest(Request::capture());
           PHP
