@@ -25,26 +25,24 @@ export default function Print({ overtime }: any) {
                         margin: 15mm 15mm; 
                     }
 
-                    /* 2. Sembunyikan SEMUA elemen di halaman */
-                    body * {
-                        visibility: hidden;
+                    /* 2. Biarkan konten mengalir normal agar otomatis lanjut ke halaman berikutnya */
+                    html, body {
+                        height: auto !important;
+                        overflow: visible !important;
+                        background: #fff !important;
                     }
 
-                    /* 3. Tampilkan HANYA area dokumen (.print-area) */
-                    .print-area, .print-area * {
-                        visibility: visible;
-                    }
-
-                    /* 4. Paksa area dokumen menempel di pojok kiri atas kertas */
                     .print-area {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        width: 100%;
-                        margin: 0;
-                        padding: 0;
+                        position: static !important;
+                        min-height: 0 !important;
+                        width: 100% !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
                         box-shadow: none !important;
                     }
+
+                    thead { display: table-header-group; }
+                    tfoot { display: table-footer-group; }
 
                     /* 5. Mencegah baris tabel terpotong di tengah */
                     tr {
@@ -75,14 +73,14 @@ export default function Print({ overtime }: any) {
             />
 
             {/* Kontainer Utama - HANYA ini yang tercetak */}
-            <div className="print-area relative min-h-screen w-full bg-white font-serif text-black">
+            <div className="print-area relative min-h-screen w-full bg-white font-serif text-black print:min-h-0">
                 {/* Tombol Kontrol (Hanya tampil di layar) */}
                 <div className="no-print fixed top-4 right-4 z-[9999] space-x-2">
                     <button
                         onClick={handlePrint}
                         className="inline-block rounded bg-green-600 px-4 py-2 font-bold text-white shadow hover:bg-green-700"
                     >
-                        🖨️ Print / Save PDF
+                        ðŸ–¨ï¸ Print / Save PDF
                     </button>
                     <button
                         onClick={() => window.close()}
@@ -336,7 +334,7 @@ export default function Print({ overtime }: any) {
                                 month: 'long',
                                 year: 'numeric',
                             })}{' '}
-                            {new Date().toLocaleTimeString('id-ID')} —
+                            {new Date().toLocaleTimeString('id-ID')} â€”
                             FR-HRD-04-03
                         </i>
                     </div>
