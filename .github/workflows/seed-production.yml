@@ -40,6 +40,8 @@ jobs:
               exit 1
             fi
           done
+          HOSTINGER_USER="${HOSTINGER_USER#"${HOSTINGER_USER%%[![:space:]]*}"}"
+          HOSTINGER_USER="${HOSTINGER_USER%"${HOSTINGER_USER##*[![:space:]]}"}"
           if [[ ! "$HOSTINGER_SSH_PORT" =~ ^[0-9]+$ || ! "$HOSTINGER_USER" =~ ^[a-zA-Z0-9._-]+$ || "$HOSTINGER_APP_PATH" != /* ]]; then
             echo "::error::Invalid SSH port, user, or app path."
             exit 1
