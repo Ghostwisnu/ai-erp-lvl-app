@@ -11,7 +11,7 @@ use Throwable;
 
 class KirimAbsensiFinger extends Command
 {
-    protected $signature = 'finger:kirim {--since=-2 days : Rentang waktu penarikan}';
+    protected $signature = 'finger:kirim {--since=-2 days : Rentang waktu penarikan} {--timeout=90 : Timeout koneksi (detik)} {--retry=3 : Jumlah percobaan}';
 
     protected $description = 'Tarik data dari mesin finger (jaringan lokal) lalu kirim ke server hosting';
 
@@ -33,8 +33,21 @@ class KirimAbsensiFinger extends Command
             $this->info("Menarik data dari {$ip}");
 
             try {
-                $device = ZkDevice::make($ip, commKey: 0, transport: 'tcp', timezone: 'Asia/Jakarta', timeout: 30);
-                $punches = $device->session(fn ($d) => $d->attendance()->since($this->option('since')));
+                $punches = null;
+                $attempts = max(1, (int) $this->option('retry'));
+                for ($i = 1; $i <= $attempts; $i++) {
+                    try {
+                        $device = ZkDevice::make($ip, commKey: 0, transport: 'tcp', timezone: 'Asia/Jakarta', timeout: (int) $this->option('timeout'));
+                        $punches = $device->session(fn ($d) => $d->attendance()->since($this->option('since')));
+                        break;
+                    } catch (\Throwable $e) {
+                        if ($i === $attempts) {
+                            throw $e;
+                        }
+                        $this->warn("  percobaan {$i} gagal, mengulang...");
+                        sleep(3);
+                    }
+                }
 
                 $payload = [];
                 foreach ($punches as $punch) {
