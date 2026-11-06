@@ -23,6 +23,7 @@ export default function Edit({ overtime, departments, employees }: any) {
             id: e.id,
             name: e.full_name,
             code: e.employee_code,
+            department: e.department,
             type: e.pivot.type,
             // AMANKAN DATA: Konversi ke String "8.0", jika kosong default ke "1.0"
             duration: e.pivot?.duration
@@ -53,6 +54,7 @@ export default function Edit({ overtime, departments, employees }: any) {
                 id: emp.id,
                 name: emp.full_name,
                 code: emp.employee_code,
+                department: emp.department,
                 type: type,
                 duration: globalDuration,
                 mutation_reason: '',
@@ -68,6 +70,7 @@ export default function Edit({ overtime, departments, employees }: any) {
                     id: emp.id,
                     name: emp.full_name,
                     code: emp.employee_code,
+                    department: emp.department,
                     type: type,
                     duration: globalDuration,
                     mutation_reason: '',
@@ -253,7 +256,7 @@ export default function Edit({ overtime, departments, employees }: any) {
                                         Durasi Lembur
                                     </th>
                                     <th className="border-r p-2">
-                                        Ket. Mutasi
+                                        Departemen Asal
                                     </th>
                                     <th className="p-2">Aksi</th>
                                 </tr>
@@ -293,24 +296,9 @@ export default function Edit({ overtime, departments, employees }: any) {
                                             </select>
                                         </td>
                                         <td className="border-r p-2">
-                                            {emp.type === 'mutasi' ? (
-                                                <input
-                                                    type="text"
-                                                    value={emp.mutation_reason}
-                                                    onChange={(e) =>
-                                                        updateEmployeeField(
-                                                            emp.id,
-                                                            'mutation_reason',
-                                                            e.target.value,
-                                                        )
-                                                    }
-                                                    placeholder="Alasan..."
-                                                    className="w-full rounded border p-1"
-                                                    required
-                                                />
-                                            ) : (
-                                                '-'
-                                            )}
+                                            {emp.type === 'mutasi'
+                                                ? emp.department || '-'
+                                                : '-'}
                                         </td>
                                         <td className="p-2">
                                             <button

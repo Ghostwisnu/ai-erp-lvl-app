@@ -68,7 +68,7 @@ export default function Show({ overtime }: any) {
                                     <th className="border-r p-2">Departemen</th>
                                     <th className="border-r p-2">Tipe</th>
                                     <th className="border-r p-2">Durasi</th>
-                                    <th className="p-2">Keterangan Mutasi</th>
+                                    <th className="p-2">Departemen Asal</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -94,7 +94,9 @@ export default function Show({ overtime }: any) {
                                             Jam
                                         </td>
                                         <td className="p-2">
-                                            {emp.pivot.mutation_reason || '-'}
+                                            {emp.pivot.type === 'mutasi'
+                                                ? emp.department || '-'
+                                                : '-'}
                                         </td>
                                     </tr>
                                 ))}

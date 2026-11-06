@@ -219,7 +219,7 @@ export default function Print({ overtime }: any) {
                                     Jam
                                 </th>
                                 <th className="border border-black p-1">
-                                    Keterangan
+                                    Departemen Asal
                                 </th>
                             </tr>
                         </thead>
@@ -243,7 +243,9 @@ export default function Print({ overtime }: any) {
                                             {parseFloat(emp.pivot.duration)}
                                         </td>
                                         <td className="border border-black p-1">
-                                            {emp.pivot.mutation_reason || '-'}
+                                            {emp.pivot.type === 'mutasi'
+                                                ? emp.department || '-'
+                                                : '-'}
                                         </td>
                                     </tr>
                                 ),
