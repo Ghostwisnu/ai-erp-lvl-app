@@ -147,28 +147,19 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
     // Ambil sizes dari SPK atau Batch yang dipilih
     const getSelectedSizes = () => {
         if (!selectedSpkId) return [];
-        
+
         const spk = spks.find((s: any) => s.id == selectedSpkId);
         if (!spk) return [];
 
         if (selectedBatchId) {
-            const batch = spk.batches?.find((b: any) => b.id == selectedBatchId);
+            const batch = spk.batches?.find(
+                (b: any) => b.id == selectedBatchId,
+            );
             return batch?.sizes || [];
         }
-        
+
         // Jika SPK tanpa batch, gunakan spk.details
         return spk.details || [];
-    };
-
-    const getSelectedSpkDisplay = () => {
-        if (!selectedSpkId) return '';
-        const spk = spks.find((s: any) => s.id == selectedSpkId);
-        if (!spk) return '';
-        if (selectedBatchId) {
-            const batch = spk.batches?.find((b: any) => b.id == selectedBatchId);
-            return batch ? `${spk.po_number}-${batch.batch_code}` : spk.po_number;
-        }
-        return spk.po_number;
     };
 
     const submitSizeRun = (e: React.FormEvent) => {
@@ -936,10 +927,17 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                         }}
                                         className="w-full rounded border p-2"
                                     >
-                                        <option value="">-- Pilih SPK --</option>
+                                        <option value="">
+                                            -- Pilih SPK --
+                                        </option>
                                         {visibleRows.map((row: any) => (
-                                            <option key={row.id} value={row.spk.id}>
-                                                {row.po_display} - {row.spk.brand?.name} ({row.spk.art_color})
+                                            <option
+                                                key={row.id}
+                                                value={row.spk.id}
+                                            >
+                                                {row.po_display} -{' '}
+                                                {row.spk.brand?.name} (
+                                                {row.spk.art_color})
                                             </option>
                                         ))}
                                     </select>
@@ -956,16 +954,32 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                         }}
                                         className="w-full rounded border p-2"
                                     >
-                                        <option value="">-- Semua Batch / SPK Utama --</option>
+                                        <option value="">
+                                            -- Semua Batch / SPK Utama --
+                                        </option>
                                         {(() => {
                                             if (!selectedSpkId) return null;
-                                            const spk = spks.find((s: any) => s.id == selectedSpkId);
-                                            if (!spk || !spk.batches || spk.batches.length === 0) return null;
-                                            return spk.batches.map((batch: any) => (
-                                                <option key={batch.id} value={batch.id}>
-                                                    {batch.batch_code} (Qty: {batch.qty})
-                                                </option>
-                                            ));
+                                            const spk = spks.find(
+                                                (s: any) =>
+                                                    s.id == selectedSpkId,
+                                            );
+                                            if (
+                                                !spk ||
+                                                !spk.batches ||
+                                                spk.batches.length === 0
+                                            )
+                                                return null;
+                                            return spk.batches.map(
+                                                (batch: any) => (
+                                                    <option
+                                                        key={batch.id}
+                                                        value={batch.id}
+                                                    >
+                                                        {batch.batch_code} (Qty:{' '}
+                                                        {batch.qty})
+                                                    </option>
+                                                ),
+                                            );
                                         })()}
                                     </select>
                                 </div>
@@ -994,81 +1008,110 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {getSelectedSizes().map((size: any) => {
-                                                // Hitung yang sudah diinput untuk size ini di departemen & tanggal yang dipilih
-                                                const spk = spks.find((s: any) => s.id == selectedSpkId);
-                                                const existingDailies = spk?.dailies || [];
-                                                const batchDailies = selectedBatchId
-                                                    ? spk?.batches?.find((b: any) => b.id == selectedBatchId)?.dailies || []
-                                                    : [];
-                                                const allDailies = [...existingDailies, ...batchDailies];
-                                                const alreadyInput = allDailies
-                                                    .filter(
-                                                        (d: any) =>
-                                                            d.department === sizeRunDept,
-                                                    )
-                                                    .reduce(
-                                                        (sum: number, d: any) =>
-                                                            sum + d.qty,
-                                                        0,
+                                            {getSelectedSizes().map(
+                                                (size: any) => {
+                                                    // Hitung yang sudah diinput untuk size ini di departemen & tanggal yang dipilih
+                                                    const spk = spks.find(
+                                                        (s: any) =>
+                                                            s.id ==
+                                                            selectedSpkId,
                                                     );
+                                                    const existingDailies =
+                                                        spk?.dailies || [];
+                                                    const batchDailies =
+                                                        selectedBatchId
+                                                            ? spk?.batches?.find(
+                                                                  (b: any) =>
+                                                                      b.id ==
+                                                                      selectedBatchId,
+                                                              )?.dailies || []
+                                                            : [];
+                                                    const allDailies = [
+                                                        ...existingDailies,
+                                                        ...batchDailies,
+                                                    ];
+                                                    const alreadyInput =
+                                                        allDailies
+                                                            .filter(
+                                                                (d: any) =>
+                                                                    d.department ===
+                                                                    sizeRunDept,
+                                                            )
+                                                            .reduce(
+                                                                (
+                                                                    sum: number,
+                                                                    d: any,
+                                                                ) =>
+                                                                    sum + d.qty,
+                                                                0,
+                                                            );
 
-                                                // Hitung qty target untuk size ini
-                                                const targetQty = size.qty || 0;
-                                                const balance = targetQty - alreadyInput;
+                                                    // Hitung qty target untuk size ini
+                                                    const targetQty =
+                                                        size.qty || 0;
+                                                    const balance =
+                                                        targetQty -
+                                                        alreadyInput;
 
-                                                return (
-                                                    <tr
-                                                        key={size.size_name}
-                                                        className="border-b hover:bg-gray-50"
-                                                    >
-                                                        <td className="p-2 font-medium">
-                                                            {size.size_name}
-                                                        </td>
-                                                        <td className="p-2 text-center">
-                                                            {targetQty}
-                                                        </td>
-                                                        <td className="p-2 text-center text-blue-600 font-medium">
-                                                            {alreadyInput}
-                                                        </td>
-                                                        <td
-                                                            className={`p-2 text-center font-bold ${balance <= 0 ? 'text-green-600' : 'text-red-600'}`}
+                                                    return (
+                                                        <tr
+                                                            key={size.size_name}
+                                                            className="border-b hover:bg-gray-50"
                                                         >
-                                                            {balance}
-                                                        </td>
-                                                        <td className="p-2">
-                                                            <input
-                                                                type="number"
-                                                                min="0"
-                                                                max={
-                                                                    balance > 0
-                                                                        ? balance
-                                                                        : 9999
-                                                                }
-                                                                value={
-                                                                    sizeRunQty[
-                                                                        size.size_name
-                                                                    ] || ''
-                                                                }
-                                                                onChange={(e) =>
-                                                                    handleSizeRunQtyChange(
-                                                                        size.size_name,
-                                                                        e.target
-                                                                            .value,
-                                                                    )
-                                                                }
-                                                                placeholder="0"
-                                                                className="w-full rounded border p-1 text-center"
-                                                            />
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
+                                                            <td className="p-2 font-medium">
+                                                                {size.size_name}
+                                                            </td>
+                                                            <td className="p-2 text-center">
+                                                                {targetQty}
+                                                            </td>
+                                                            <td className="p-2 text-center font-medium text-blue-600">
+                                                                {alreadyInput}
+                                                            </td>
+                                                            <td
+                                                                className={`p-2 text-center font-bold ${balance <= 0 ? 'text-green-600' : 'text-red-600'}`}
+                                                            >
+                                                                {balance}
+                                                            </td>
+                                                            <td className="p-2">
+                                                                <input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    max={
+                                                                        balance >
+                                                                        0
+                                                                            ? balance
+                                                                            : 9999
+                                                                    }
+                                                                    value={
+                                                                        sizeRunQty[
+                                                                            size
+                                                                                .size_name
+                                                                        ] || ''
+                                                                    }
+                                                                    onChange={(
+                                                                        e,
+                                                                    ) =>
+                                                                        handleSizeRunQtyChange(
+                                                                            size.size_name,
+                                                                            e
+                                                                                .target
+                                                                                .value,
+                                                                        )
+                                                                    }
+                                                                    placeholder="0"
+                                                                    className="w-full rounded border p-1 text-center"
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                },
+                                            )}
                                         </tbody>
                                     </table>
                                 ) : (
                                     <div className="p-8 text-center text-gray-500">
-                                        Silakan pilih SPK terlebih dahulu untuk melihat daftar size run.
+                                        Silakan pilih SPK terlebih dahulu untuk
+                                        melihat daftar size run.
                                     </div>
                                 )}
                             </div>
@@ -1083,7 +1126,9 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={isSizeRunSubmitting || !selectedSpkId}
+                                    disabled={
+                                        isSizeRunSubmitting || !selectedSpkId
+                                    }
                                     className="rounded bg-purple-600 px-6 py-2 font-medium text-white disabled:opacity-50"
                                 >
                                     {isSizeRunSubmitting
