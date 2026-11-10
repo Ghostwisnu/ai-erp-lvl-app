@@ -930,21 +930,29 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                         <option value="">
                                             -- Pilih SPK --
                                         </option>
-                                        {visibleRows.map((row: any) => (
-                                            <option
-                                                key={row.id}
-                                                value={row.spk.id}
-                                            >
-                                                {row.po_display} -{' '}
-                                                {row.spk.brand?.name} (
-                                                {row.spk.art_color})
-                                            </option>
-                                        ))}
+                                        {/* Tampilkan SPK unik saja (bukan per batch) */}
+                                        {spks
+                                            .filter(
+                                                (spk: any) =>
+                                                    !selectedBrandId ||
+                                                    String(spk.brand_id) ===
+                                                        selectedBrandId,
+                                            )
+                                            .map((spk: any) => (
+                                                <option
+                                                    key={spk.id}
+                                                    value={spk.id}
+                                                >
+                                                    {spk.po_number} -{' '}
+                                                    {spk.brand?.name} (
+                                                    {spk.art_color})
+                                                </option>
+                                            ))}
                                     </select>
                                 </div>
                                 <div className="flex-1">
                                     <label className="mb-1 block text-sm font-medium">
-                                        Pilih Batch (Opsional)
+                                        Pilih Batch / SPK Utama
                                     </label>
                                     <select
                                         value={selectedBatchId}
@@ -955,7 +963,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                         className="w-full rounded border p-2"
                                     >
                                         <option value="">
-                                            -- Semua Batch / SPK Utama --
+                                            -- SPK Utama (Tanpa Batch) --
                                         </option>
                                         {(() => {
                                             if (!selectedSpkId) return null;
