@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 export default function Schedule({ spks, finishingScans, brands }: any) {
     const departments = [
-        { key: 'cutting', label: 'PEMOTONGAN' },
-        { key: 'sewing', label: 'PENJAHITAN' },
-        { key: 'lasting', label: 'PEMASANGAN SOL' },
-        { key: 'cementing', label: 'PENGELEMAN' },
-        { key: 'injection', label: 'INJEKSI' },
-        { key: 'finishing', label: 'PENYELESAIAN' },
-        { key: 'packing', label: 'PENGEMASAN' },
+        { key: 'cutting', label: 'CUTTING' },
+        { key: 'sewing', label: 'SEWING' },
+        { key: 'lasting', label: 'LASTING' },
+        { key: 'cementing', label: 'CEMENTING' },
+        { key: 'injection', label: 'INJECTION' },
+        { key: 'finishing', label: 'FINISHING' },
+        { key: 'packing', label: 'PACKING' },
     ];
 
     // --- STATE UNTUK BULK INPUT ---
@@ -218,21 +220,178 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
         return total;
     };
 
+    // PDF Export function
+    const exportToPDF = () => {
+        const doc = new jsPDF('landscape', 'mm', 'a4');
+
+        // Title
+        doc.setFontSize(16);
+        doc.setFont('helvetica', 'bold');
+        doc.text('PRODUCTION PROGRESS SCHEDULE (PPS)', 14, 12);
+
+        // Date and filter info
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        const today = new Date().toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+        doc.text(`Printed: ${today}`, 14, 18);
+        if (selectedBrandId) {
+            const brand = brands.find((b: any) => b.id == selectedBrandId);
+            doc.text(`Brand: ${brand?.name || ''}`, 14, 23);
+        }
+
+        // Prepare table data
+        const tableHead = [
+            [
+                'NO',
+                'PO NO.',
+                'MODEL',
+                'COLOR',
+                'QTY',
+                ...departments.flatMap((d) => [
+                    d.label + ' DATE',
+                    d.label + ' DAILY',
+                    d.label + ' TOTAL',
+                    d.label + ' BALANCE',
+                ]),
+                'XFD',
+            ],
+        ];
+
+        const tableBody = visibleRows.map((row: any, index: number) => {
+            const rowData = [
+                index + 1,
+                row.po_display,
+                row.spk.brand?.name || '',
+                row.spk.art_color || '',
+                row.qty,
+            ];
+
+            departments.forEach((dept) => {
+                const track = row.tracks.find(
+                    (t: any) => t.department === dept.key,
+                );
+                let totalOutput = 0;
+                let latestDaily = null;
+
+                if (dept.key === 'finishing') {
+                    totalOutput = calculateFinishingScan(row);
+                    latestDaily =
+                        totalOutput > 0
+                            ? { qty: totalOutput, report_date: null }
+                            : null;
+                } else {
+                    totalOutput = row.dailies
+                        .filter((d: any) => d.department === dept.key)
+                        .reduce((sum: number, d: any) => sum + d.qty, 0);
+                    latestDaily = row.dailies
+                        .filter((d: any) => d.department === dept.key)
+                        .sort(
+                            (a: any, b: any) =>
+                                new Date(b.report_date).getTime() -
+                                new Date(a.report_date).getTime(),
+                        )[0];
+                }
+
+                const balance = row.qty - totalOutput;
+
+                let startDate = '-';
+                if (track) {
+                    startDate = new Date(track.start_date).toLocaleDateString(
+                        'en-GB',
+                        { day: '2-digit', month: '2-digit' },
+                    );
+                } else if (
+                    row.type === 'spk' &&
+                    dept.key === 'cutting' &&
+                    row.spk.start_date
+                ) {
+                    startDate = new Date(row.spk.start_date).toLocaleDateString(
+                        'en-GB',
+                        { day: '2-digit', month: '2-digit' },
+                    );
+                }
+
+                rowData.push(
+                    startDate,
+                    dept.key === 'finishing'
+                        ? '-'
+                        : latestDaily
+                          ? latestDaily.qty
+                          : '-',
+                    totalOutput > 0 ? totalOutput : '-',
+                    balance,
+                );
+            });
+
+            rowData.push(
+                new Date(row.spk.xfd_date).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                }),
+            );
+
+            return rowData;
+        });
+
+        // @ts-ignore
+        doc.autoTable({
+            head: tableHead,
+            body: tableBody,
+            startY: selectedBrandId ? 28 : 22,
+            margin: { left: 10, right: 10 },
+            styles: { fontSize: 6, cellPadding: 1 },
+            headStyles: {
+                fillColor: [200, 200, 200],
+                textColor: 0,
+                fontStyle: 'bold',
+            },
+            alternateRowStyles: { fillColor: [245, 245, 245] },
+            columnStyles: {
+                0: { cellWidth: 8 }, // NO
+                1: { cellWidth: 25 }, // PO NO
+                2: { cellWidth: 20 }, // MODEL
+                3: { cellWidth: 15 }, // COLOR
+                4: { cellWidth: 12 }, // QTY
+                // Department columns will be auto-sized
+                [tableHead[0].length - 1]: { cellWidth: 18 }, // XFD
+            },
+            didDrawPage: (data: any) => {
+                // Footer
+                const pageCount = doc.getNumberOfPages();
+                doc.setFontSize(7);
+                doc.text(
+                    `Page ${data.pageNumber} of ${pageCount}`,
+                    doc.internal.pageSize.width - 20,
+                    doc.internal.pageSize.height - 5,
+                    { align: 'right' },
+                );
+            },
+        });
+
+        doc.save(
+            `PPS_${selectedBrandId ? 'brand-' + selectedBrandId : 'all'}_${new Date().toISOString().split('T')[0]}.pdf`,
+        );
+    };
+
     return (
         <>
-            <Head title="Jadwal Kemajuan Produksi" />
+            <Head title="Production Progress Schedule" />
             <div className="mx-auto max-w-full px-4 py-8">
                 {/* Header */}
                 <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-bold uppercase">
-                        Jadwal Kemajuan Produksi
+                        Production Progress Schedule
                     </h1>
                     <div className="flex flex-wrap items-center justify-end gap-2">
                         <label
                             htmlFor="brand-filter"
                             className="text-sm font-medium"
                         >
-                            Filter brand
+                            Filter Brand
                         </label>
                         <select
                             id="brand-filter"
@@ -242,7 +401,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                             }
                             className="rounded border border-gray-300 bg-white px-3 py-2 text-sm"
                         >
-                            <option value="">Semua brand</option>
+                            <option value="">All Brands</option>
                             {brands.map((brand: any) => (
                                 <option key={brand.id} value={brand.id}>
                                     {brand.name}
@@ -256,22 +415,28 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                             Export Excel
                         </a>
                         <button
+                            onClick={exportToPDF}
+                            className="rounded bg-red-600 px-4 py-2 text-sm font-bold text-white shadow hover:bg-red-700"
+                        >
+                            Export PDF
+                        </button>
+                        <button
                             onClick={() => handleOpenBulk('cutting')}
                             className="rounded bg-blue-600 px-4 py-2 text-sm font-bold text-white shadow hover:bg-blue-700"
                         >
-                            + Masukkan Hasil Harian Massal
+                            + Bulk Daily Input
                         </button>
                         <Link
                             href="/produksi/spks"
                             className="text-sm font-medium text-blue-600 hover:underline"
                         >
-                            &larr; Kembali ke SPK
+                            &larr; Back to SPK
                         </Link>
                         <button
                             onClick={() => handleOpenSizeRun('cutting')}
                             className="rounded bg-purple-600 px-4 py-2 text-sm font-bold text-white shadow hover:bg-purple-700"
                         >
-                            + Input Hasil per Size Run
+                            + Input by Size Run
                         </button>
                     </div>
                 </div>
@@ -303,13 +468,13 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                     rowSpan={2}
                                     className="border border-black p-1"
                                 >
-                                    WARNA
+                                    COLOR
                                 </th>
                                 <th
                                     rowSpan={2}
                                     className="border border-black p-1"
                                 >
-                                    JUMLAH
+                                    QTY
                                 </th>
                                 {departments.map((d) => (
                                     <th
@@ -331,16 +496,16 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                 {departments.map((d) => (
                                     <React.Fragment key={d.key}>
                                         <th className="border border-black bg-gray-50 p-1">
-                                            TGL
+                                            DATE
                                         </th>
                                         <th className="border border-black bg-gray-50 p-1">
-                                            HARIAN
+                                            DAILY
                                         </th>
                                         <th className="border border-black bg-gray-50 p-1">
                                             TOTAL
                                         </th>
                                         <th className="border border-black bg-red-50 p-1 text-red-700">
-                                            SISA
+                                            BALANCE
                                         </th>
                                     </React.Fragment>
                                 ))}
@@ -353,7 +518,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                         colSpan={departments.length * 4 + 6}
                                         className="border border-black p-6 text-center text-gray-500"
                                     >
-                                        Tidak ada data PPS untuk brand ini.
+                                        No PPS data for this brand.
                                     </td>
                                 </tr>
                             ) : (
@@ -533,7 +698,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                                     {new Date(
                                                         row.spk.xfd_date,
                                                     ).toLocaleDateString(
-                                                        'id-ID',
+                                                        'en-GB',
                                                         {
                                                             day: '2-digit',
                                                             month: 'short',
@@ -542,7 +707,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                                 </td>
                                             </tr>
 
-                                            {/* BARIS HISTORI */}
+                                            {/* HISTORY ROW */}
                                             {isExpanded && (
                                                 <tr>
                                                     <td
@@ -555,26 +720,26 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                                     >
                                                         <div className="mx-auto max-w-3xl">
                                                             <h4 className="mb-2 text-sm font-bold text-gray-700">
-                                                                Histori Input
-                                                                Harian:{' '}
+                                                                Daily Input
+                                                                History:{' '}
                                                                 {row.po_display}
                                                             </h4>
                                                             <table className="w-full rounded border bg-white text-left text-xs">
                                                                 <thead className="bg-gray-200">
                                                                     <tr>
                                                                         <th className="border-b p-2">
-                                                                            Tanggal
-                                                                            Laporan
+                                                                            Report
+                                                                            Date
                                                                         </th>
                                                                         <th className="border-b p-2">
-                                                                            Departemen
+                                                                            Department
                                                                         </th>
                                                                         <th className="border-b p-2 text-center">
-                                                                            Jumlah
-                                                                            Hasil
+                                                                            Qty
+                                                                            Output
                                                                         </th>
                                                                         <th className="w-20 border-b p-2 text-center">
-                                                                            Aksi
+                                                                            Action
                                                                         </th>
                                                                     </tr>
                                                                 </thead>
@@ -589,10 +754,10 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                                                                 }
                                                                                 className="p-3 text-center text-gray-400"
                                                                             >
-                                                                                Belum
-                                                                                ada
+                                                                                No
+                                                                                daily
                                                                                 input
-                                                                                harian.
+                                                                                yet.
                                                                             </td>
                                                                         </tr>
                                                                     ) : (
@@ -623,7 +788,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                                                                             {new Date(
                                                                                                 daily.report_date,
                                                                                             ).toLocaleDateString(
-                                                                                                'id-ID',
+                                                                                                'en-GB',
                                                                                                 {
                                                                                                     day: '2-digit',
                                                                                                     month: 'long',
@@ -650,7 +815,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                                                                                 }
                                                                                                 className="text-red-500 hover:underline"
                                                                                             >
-                                                                                                Hapus
+                                                                                                Delete
                                                                                             </button>
                                                                                         </td>
                                                                                     </tr>
@@ -678,7 +843,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                     <div className="flex max-h-[90vh] w-full max-w-4xl flex-col rounded-lg bg-white shadow-xl">
                         <div className="flex items-center justify-between rounded-t-lg border-b bg-gray-50 p-4">
                             <h3 className="text-lg font-bold">
-                                Masukkan Hasil Harian Massal
+                                Bulk Daily Input
                             </h3>
                             <button
                                 onClick={() => setIsBulkModalOpen(false)}
@@ -695,7 +860,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                             <div className="mb-4 flex gap-4 rounded border border-blue-100 bg-blue-50 p-3">
                                 <div className="flex-1">
                                     <label className="mb-1 block text-sm font-medium">
-                                        Tanggal Laporan
+                                        Report Date
                                     </label>
                                     <input
                                         type="date"
@@ -709,7 +874,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                 </div>
                                 <div className="flex-1">
                                     <label className="mb-1 block text-sm font-medium">
-                                        Departemen
+                                        Department
                                     </label>
                                     <select
                                         value={bulkDept}
@@ -718,7 +883,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                         }
                                         className="w-full rounded border p-2"
                                     >
-                                        {/* Hanya tampilkan departemen yang BUKAN finishing, karena finishing pakai scan */}
+                                        {/* Only show departments except finishing, as finishing uses scan */}
                                         {departments
                                             .filter(
                                                 (d) => d.key !== 'finishing',
@@ -740,26 +905,26 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                     <thead className="sticky top-0 bg-gray-100">
                                         <tr>
                                             <th className="border-b p-2">
-                                                PO / Kelompok
+                                                PO / Group
                                             </th>
                                             <th className="border-b p-2 text-center">
-                                                Jumlah Total
+                                                Total Qty
                                             </th>
                                             <th className="border-b p-2 text-center">
-                                                Sisa
+                                                Balance
                                             </th>
                                             <th className="w-32 border-b p-2 text-center">
-                                                Jumlah Hasil
+                                                Daily Output
                                             </th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {visibleRows.map((row: any) => {
-                                            // Hitung Balance KHUSUS untuk departemen yang dipilih di modal
+                                            // Calculate Balance SPECIFIC for department selected in modal
                                             let currentOutput = 0;
 
                                             if (bulkDept === 'finishing') {
-                                                // Jaga-jaga jika finishing dipilih (meski sudah disembunyikan)
+                                                // Safety check if finishing selected (though hidden)
                                                 currentOutput =
                                                     calculateFinishingScan(row);
                                             } else {
@@ -833,7 +998,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                     onClick={() => setIsBulkModalOpen(false)}
                                     className="rounded bg-gray-200 px-4 py-2 font-medium"
                                 >
-                                    Batal
+                                    Cancel
                                 </button>
                                 <button
                                     type="submit"
@@ -841,8 +1006,8 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                     className="rounded bg-blue-600 px-6 py-2 font-medium text-white disabled:opacity-50"
                                 >
                                     {isSubmitting
-                                        ? 'Menyimpan...'
-                                        : 'Simpan Semua Hasil'}
+                                        ? 'Saving...'
+                                        : 'Save All Output'}
                                 </button>
                             </div>
                         </form>
@@ -850,13 +1015,13 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                 </div>
             )}
 
-            {/* MODAL INPUT BERDASARKAN SIZE RUN (PILIH SPK DULU) */}
+            {/* MODAL INPUT BY SIZE RUN (SELECT SPK FIRST) */}
             {isSizeRunModalOpen && (
                 <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4">
                     <div className="flex max-h-[90vh] w-full max-w-4xl flex-col rounded-lg bg-white shadow-xl">
                         <div className="flex items-center justify-between rounded-t-lg border-b bg-gray-50 p-4">
                             <h3 className="text-lg font-bold">
-                                Masukkan Hasil Harian per Size Run
+                                Daily Input by Size Run
                             </h3>
                             <button
                                 onClick={() => setIsSizeRunModalOpen(false)}
@@ -873,7 +1038,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                             <div className="mb-4 flex gap-4 rounded border border-purple-100 bg-purple-50 p-3">
                                 <div className="flex-1">
                                     <label className="mb-1 block text-sm font-medium">
-                                        Tanggal Laporan
+                                        Report Date
                                     </label>
                                     <input
                                         type="date"
@@ -887,7 +1052,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                 </div>
                                 <div className="flex-1">
                                     <label className="mb-1 block text-sm font-medium">
-                                        Departemen
+                                        Department
                                     </label>
                                     <select
                                         value={sizeRunDept}
@@ -912,11 +1077,11 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                 </div>
                             </div>
 
-                            {/* Pilih SPK */}
+                            {/* Select SPK */}
                             <div className="mb-4 flex gap-4 rounded border border-gray-200 bg-gray-50 p-3">
                                 <div className="flex-1">
                                     <label className="mb-1 block text-sm font-medium">
-                                        Pilih SPK
+                                        Select SPK
                                     </label>
                                     <select
                                         value={selectedSpkId}
@@ -928,9 +1093,9 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                         className="w-full rounded border p-2"
                                     >
                                         <option value="">
-                                            -- Pilih SPK --
+                                            -- Select SPK --
                                         </option>
-                                        {/* Tampilkan SPK unik saja (bukan per batch) */}
+                                        {/* Show unique SPKs only (not per batch) */}
                                         {spks
                                             .filter(
                                                 (spk: any) =>
@@ -952,7 +1117,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                 </div>
                                 <div className="flex-1">
                                     <label className="mb-1 block text-sm font-medium">
-                                        Pilih Batch / SPK Utama
+                                        Select Batch / Main SPK
                                     </label>
                                     <select
                                         value={selectedBatchId}
@@ -963,7 +1128,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                         className="w-full rounded border p-2"
                                     >
                                         <option value="">
-                                            -- SPK Utama (Tanpa Batch) --
+                                            -- Main SPK (No Batch) --
                                         </option>
                                         {(() => {
                                             if (!selectedSpkId) return null;
@@ -1005,13 +1170,13 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                                     Qty SPK/Batch
                                                 </th>
                                                 <th className="border-b p-2 text-center">
-                                                    Sudah Diinput
+                                                    Already Input
                                                 </th>
                                                 <th className="border-b p-2 text-center">
-                                                    Sisa
+                                                    Balance
                                                 </th>
                                                 <th className="w-32 border-b p-2 text-center">
-                                                    Jumlah Hasil
+                                                    Daily Output
                                                 </th>
                                             </tr>
                                         </thead>
