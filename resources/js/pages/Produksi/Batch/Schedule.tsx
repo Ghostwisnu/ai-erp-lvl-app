@@ -22,6 +22,17 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedBrandId, setSelectedBrandId] = useState('');
 
+    // --- STATE UNTUK INPUT BERDASARKAN SIZE RUN (PILIH SPK DULU) ---
+    const [isSizeRunModalOpen, setIsSizeRunModalOpen] = useState(false);
+    const [sizeRunDept, setSizeRunDept] = useState('cutting');
+    const [sizeRunDate, setSizeRunDate] = useState(
+        new Date().toISOString().split('T')[0],
+    );
+    const [selectedSpkId, setSelectedSpkId] = useState('');
+    const [selectedBatchId, setSelectedBatchId] = useState('');
+    const [sizeRunQty, setSizeRunQty] = useState<{ [key: string]: number }>({});
+    const [isSizeRunSubmitting, setIsSizeRunSubmitting] = useState(false);
+
     // --- STATE UNTUK EXPAND ROW (HISTORI) ---
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
@@ -120,6 +131,85 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
         }
     };
 
+    // --- LOGIKA INPUT BERDASARKAN SIZE RUN (PILIH SPK DULU) ---
+    const handleOpenSizeRun = (dept: string) => {
+        setSizeRunDept(dept);
+        setSizeRunQty({});
+        setSelectedSpkId('');
+        setSelectedBatchId('');
+        setIsSizeRunModalOpen(true);
+    };
+
+    const handleSizeRunQtyChange = (sizeName: string, val: string) => {
+        setSizeRunQty((prev) => ({ ...prev, [sizeName]: Number(val) }));
+    };
+
+    // Ambil sizes dari SPK atau Batch yang dipilih
+    const getSelectedSizes = () => {
+        if (!selectedSpkId) return [];
+        
+        const spk = spks.find((s: any) => s.id == selectedSpkId);
+        if (!spk) return [];
+
+        if (selectedBatchId) {
+            const batch = spk.batches?.find((b: any) => b.id == selectedBatchId);
+            return batch?.sizes || [];
+        }
+        
+        // Jika SPK tanpa batch, gunakan spk.details
+        return spk.details || [];
+    };
+
+    const getSelectedSpkDisplay = () => {
+        if (!selectedSpkId) return '';
+        const spk = spks.find((s: any) => s.id == selectedSpkId);
+        if (!spk) return '';
+        if (selectedBatchId) {
+            const batch = spk.batches?.find((b: any) => b.id == selectedBatchId);
+            return batch ? `${spk.po_number}-${batch.batch_code}` : spk.po_number;
+        }
+        return spk.po_number;
+    };
+
+    const submitSizeRun = (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSizeRunSubmitting(true);
+
+        const sizes = getSelectedSizes();
+        const items = sizes
+            .filter((size: any) => sizeRunQty[size.size_name] > 0)
+            .map((size: any) => ({
+                spk_id: selectedSpkId,
+                spk_batch_id: selectedBatchId || null,
+                qty: sizeRunQty[size.size_name] || 0,
+            }));
+
+        if (items.length === 0) {
+            alert('Masukkan setidaknya satu jumlah hasil per size.');
+            setIsSizeRunSubmitting(false);
+            return;
+        }
+
+        router.post(
+            '/produksi/daily-output',
+            {
+                report_date: sizeRunDate,
+                department: sizeRunDept,
+                items: items,
+            },
+            {
+                onSuccess: () => {
+                    setIsSizeRunModalOpen(false);
+                    setIsSizeRunSubmitting(false);
+                    setSizeRunQty({});
+                    setSelectedSpkId('');
+                    setSelectedBatchId('');
+                },
+                onError: () => setIsSizeRunSubmitting(false),
+            },
+        );
+    };
+
     // --- HELPER UNTUK HITUNG SCAN FINISHING PER BATCH ---
     const calculateFinishingScan = (row: any) => {
         let total = 0;
@@ -186,6 +276,12 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                         >
                             &larr; Kembali ke SPK
                         </Link>
+                        <button
+                            onClick={() => handleOpenSizeRun('cutting')}
+                            className="rounded bg-purple-600 px-4 py-2 text-sm font-bold text-white shadow hover:bg-purple-700"
+                        >
+                            + Input Hasil per Size Run
+                        </button>
                     </div>
                 </div>
 
@@ -756,6 +852,243 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                                     {isSubmitting
                                         ? 'Menyimpan...'
                                         : 'Simpan Semua Hasil'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL INPUT BERDASARKAN SIZE RUN (PILIH SPK DULU) */}
+            {isSizeRunModalOpen && (
+                <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black p-4">
+                    <div className="flex max-h-[90vh] w-full max-w-4xl flex-col rounded-lg bg-white shadow-xl">
+                        <div className="flex items-center justify-between rounded-t-lg border-b bg-gray-50 p-4">
+                            <h3 className="text-lg font-bold">
+                                Masukkan Hasil Harian per Size Run
+                            </h3>
+                            <button
+                                onClick={() => setIsSizeRunModalOpen(false)}
+                                className="text-xl font-bold text-gray-500 hover:text-red-500"
+                            >
+                                &times;
+                            </button>
+                        </div>
+
+                        <form
+                            onSubmit={submitSizeRun}
+                            className="flex flex-col overflow-hidden p-4"
+                        >
+                            <div className="mb-4 flex gap-4 rounded border border-purple-100 bg-purple-50 p-3">
+                                <div className="flex-1">
+                                    <label className="mb-1 block text-sm font-medium">
+                                        Tanggal Laporan
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={sizeRunDate}
+                                        onChange={(e) =>
+                                            setSizeRunDate(e.target.value)
+                                        }
+                                        className="w-full rounded border p-2"
+                                        required
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="mb-1 block text-sm font-medium">
+                                        Departemen
+                                    </label>
+                                    <select
+                                        value={sizeRunDept}
+                                        onChange={(e) =>
+                                            setSizeRunDept(e.target.value)
+                                        }
+                                        className="w-full rounded border p-2"
+                                    >
+                                        {departments
+                                            .filter(
+                                                (d) => d.key !== 'finishing',
+                                            )
+                                            .map((d) => (
+                                                <option
+                                                    key={d.key}
+                                                    value={d.key}
+                                                >
+                                                    {d.label}
+                                                </option>
+                                            ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Pilih SPK */}
+                            <div className="mb-4 flex gap-4 rounded border border-gray-200 bg-gray-50 p-3">
+                                <div className="flex-1">
+                                    <label className="mb-1 block text-sm font-medium">
+                                        Pilih SPK
+                                    </label>
+                                    <select
+                                        value={selectedSpkId}
+                                        onChange={(e) => {
+                                            setSelectedSpkId(e.target.value);
+                                            setSelectedBatchId('');
+                                            setSizeRunQty({});
+                                        }}
+                                        className="w-full rounded border p-2"
+                                    >
+                                        <option value="">-- Pilih SPK --</option>
+                                        {visibleRows.map((row: any) => (
+                                            <option key={row.id} value={row.spk.id}>
+                                                {row.po_display} - {row.spk.brand?.name} ({row.spk.art_color})
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="flex-1">
+                                    <label className="mb-1 block text-sm font-medium">
+                                        Pilih Batch (Opsional)
+                                    </label>
+                                    <select
+                                        value={selectedBatchId}
+                                        onChange={(e) => {
+                                            setSelectedBatchId(e.target.value);
+                                            setSizeRunQty({});
+                                        }}
+                                        className="w-full rounded border p-2"
+                                    >
+                                        <option value="">-- Semua Batch / SPK Utama --</option>
+                                        {(() => {
+                                            if (!selectedSpkId) return null;
+                                            const spk = spks.find((s: any) => s.id == selectedSpkId);
+                                            if (!spk || !spk.batches || spk.batches.length === 0) return null;
+                                            return spk.batches.map((batch: any) => (
+                                                <option key={batch.id} value={batch.id}>
+                                                    {batch.batch_code} (Qty: {batch.qty})
+                                                </option>
+                                            ));
+                                        })()}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto rounded border">
+                                {selectedSpkId ? (
+                                    <table className="w-full text-left text-sm">
+                                        <thead className="sticky top-0 bg-gray-100">
+                                            <tr>
+                                                <th className="border-b p-2">
+                                                    Size
+                                                </th>
+                                                <th className="border-b p-2 text-center">
+                                                    Qty SPK/Batch
+                                                </th>
+                                                <th className="border-b p-2 text-center">
+                                                    Sudah Diinput
+                                                </th>
+                                                <th className="border-b p-2 text-center">
+                                                    Sisa
+                                                </th>
+                                                <th className="w-32 border-b p-2 text-center">
+                                                    Jumlah Hasil
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {getSelectedSizes().map((size: any) => {
+                                                // Hitung yang sudah diinput untuk size ini di departemen & tanggal yang dipilih
+                                                const spk = spks.find((s: any) => s.id == selectedSpkId);
+                                                const existingDailies = spk?.dailies || [];
+                                                const batchDailies = selectedBatchId
+                                                    ? spk?.batches?.find((b: any) => b.id == selectedBatchId)?.dailies || []
+                                                    : [];
+                                                const allDailies = [...existingDailies, ...batchDailies];
+                                                const alreadyInput = allDailies
+                                                    .filter(
+                                                        (d: any) =>
+                                                            d.department === sizeRunDept,
+                                                    )
+                                                    .reduce(
+                                                        (sum: number, d: any) =>
+                                                            sum + d.qty,
+                                                        0,
+                                                    );
+
+                                                // Hitung qty target untuk size ini
+                                                const targetQty = size.qty || 0;
+                                                const balance = targetQty - alreadyInput;
+
+                                                return (
+                                                    <tr
+                                                        key={size.size_name}
+                                                        className="border-b hover:bg-gray-50"
+                                                    >
+                                                        <td className="p-2 font-medium">
+                                                            {size.size_name}
+                                                        </td>
+                                                        <td className="p-2 text-center">
+                                                            {targetQty}
+                                                        </td>
+                                                        <td className="p-2 text-center text-blue-600 font-medium">
+                                                            {alreadyInput}
+                                                        </td>
+                                                        <td
+                                                            className={`p-2 text-center font-bold ${balance <= 0 ? 'text-green-600' : 'text-red-600'}`}
+                                                        >
+                                                            {balance}
+                                                        </td>
+                                                        <td className="p-2">
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                max={
+                                                                    balance > 0
+                                                                        ? balance
+                                                                        : 9999
+                                                                }
+                                                                value={
+                                                                    sizeRunQty[
+                                                                        size.size_name
+                                                                    ] || ''
+                                                                }
+                                                                onChange={(e) =>
+                                                                    handleSizeRunQtyChange(
+                                                                        size.size_name,
+                                                                        e.target
+                                                                            .value,
+                                                                    )
+                                                                }
+                                                                placeholder="0"
+                                                                className="w-full rounded border p-1 text-center"
+                                                            />
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                ) : (
+                                    <div className="p-8 text-center text-gray-500">
+                                        Silakan pilih SPK terlebih dahulu untuk melihat daftar size run.
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="mt-4 flex justify-end space-x-2 border-t pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsSizeRunModalOpen(false)}
+                                    className="rounded bg-gray-200 px-4 py-2 font-medium"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSizeRunSubmitting || !selectedSpkId}
+                                    className="rounded bg-purple-600 px-6 py-2 font-medium text-white disabled:opacity-50"
+                                >
+                                    {isSizeRunSubmitting
+                                        ? 'Menyimpan...'
+                                        : 'Simpan Hasil per Size'}
                                 </button>
                             </div>
                         </form>
