@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -28,7 +28,7 @@ return new class extends Migration
             // SQLite: coba drop index jika ada, ignore error
             try {
                 DB::statement('DROP INDEX spks_po_number_unique');
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // Index tidak ada, abaikan
             }
         }
@@ -60,7 +60,7 @@ return new class extends Migration
         } elseif ($driver === 'sqlite') {
             try {
                 DB::statement('DROP INDEX spks_po_brand_color_unique');
-            } catch (\Throwable) {
+            } catch (Throwable) {
                 // Index tidak ada, abaikan
             }
         }
