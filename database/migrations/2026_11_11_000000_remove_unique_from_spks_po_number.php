@@ -12,14 +12,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Hapus constraint unique lama pada kolom po_number (jika ada)
-        $indexExists = DB::select(
-            "SELECT COUNT(*) as cnt FROM information_schema.STATISTICS
-             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'spks' AND INDEX_NAME = 'spks_po_number_unique'"
-        )[0]->cnt ?? 0;
+        $driver = DB::getDriverName();
 
-        if ($indexExists > 0) {
-            DB::statement('DROP INDEX spks_po_number_unique ON spks');
+        // Hapus constraint unique lama pada kolom po_number (jika ada)
+        if ($driver === 'mysql') {
+            $indexExists = DB::select(
+                "SELECT COUNT(*) as cnt FROM information_schema.STATISTICS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'spks' AND INDEX_NAME = 'spks_po_number_unique'"
+            )[0]->cnt ?? 0;
+
+            if ($indexExists > 0) {
+                DB::statement('DROP INDEX spks_po_number_unique ON spks');
+            }
+        } elseif ($driver === 'sqlite') {
+            // SQLite: coba drop index jika ada, ignore error
+            try {
+                DB::statement('DROP INDEX spks_po_number_unique');
+            } catch (\Throwable) {
+                // Index tidak ada, abaikan
+            }
         }
 
         // Tambahkan composite unique index pada (po_number, brand_id, art_color)
@@ -34,14 +45,24 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Hapus composite index
-        $indexExists = DB::select(
-            "SELECT COUNT(*) as cnt FROM information_schema.STATISTICS
-             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'spks' AND INDEX_NAME = 'spks_po_brand_color_unique'"
-        )[0]->cnt ?? 0;
+        $driver = DB::getDriverName();
 
-        if ($indexExists > 0) {
-            DB::statement('DROP INDEX spks_po_brand_color_unique ON spks');
+        // Hapus composite index
+        if ($driver === 'mysql') {
+            $indexExists = DB::select(
+                "SELECT COUNT(*) as cnt FROM information_schema.STATISTICS
+                 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'spks' AND INDEX_NAME = 'spks_po_brand_color_unique'"
+            )[0]->cnt ?? 0;
+
+            if ($indexExists > 0) {
+                DB::statement('DROP INDEX spks_po_brand_color_unique ON spks');
+            }
+        } elseif ($driver === 'sqlite') {
+            try {
+                DB::statement('DROP INDEX spks_po_brand_color_unique');
+            } catch (\Throwable) {
+                // Index tidak ada, abaikan
+            }
         }
 
         // Kembalikan constraint unique pada po_number
