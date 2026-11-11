@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 export default function Schedule({ spks, finishingScans, brands }: any) {
     const departments = [
@@ -337,8 +337,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
             return rowData;
         });
 
-        // @ts-ignore
-        doc.autoTable({
+        autoTable(doc, {
             head: tableHead,
             body: tableBody,
             startY: selectedBrandId ? 28 : 22,
