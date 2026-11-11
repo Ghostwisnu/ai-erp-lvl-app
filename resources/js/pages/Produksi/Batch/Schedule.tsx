@@ -244,7 +244,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                 img.onerror = reject;
                 img.src = '/images/logo.jpeg';
             });
-        } catch (e) {
+        } catch {
             // Logo gagal di-load, fallback ke teks brand
             console.warn('Logo load failed, using text fallback');
         }
@@ -290,7 +290,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
             if (logoDataURL) {
                 try {
                     doc.addImage(logoDataURL, 'JPEG', 8, currentY + 2, 44, 14);
-                } catch (e) {
+                } catch {
                     // Fallback ke teks
                     doc.setFontSize(14);
                     doc.setFont('helvetica', 'bold');
