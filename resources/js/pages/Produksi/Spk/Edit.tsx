@@ -114,6 +114,9 @@ export default function Edit({ spk, brands }: any) {
                                         {errors.po_number}
                                     </p>
                                 )}
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Bisa sama dengan PO lain asal Merek atau Model/Warna berbeda
+                                </p>
                             </div>
                             <div>
                                 <label className="mb-1 block text-sm font-medium">

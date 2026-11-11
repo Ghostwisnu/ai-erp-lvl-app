@@ -9,6 +9,7 @@ use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\Response;
 
 class SpkController extends BaseAdminController
@@ -30,7 +31,15 @@ class SpkController extends BaseAdminController
     public function store(Request $request): Response|Responsable
     {
         $validated = $request->validate([
-            'po_number' => 'required|string|unique:spks,po_number',
+            'po_number' => [
+                'required',
+                'string',
+                Rule::unique('spks', 'po_number')
+                    ->where(fn ($q) => $q
+                        ->where('brand_id', $request->input('brand_id'))
+                        ->where('art_color', $request->input('art_color'))
+                    ),
+            ],
             'xfd_date' => 'required|date',
             'brand_id' => 'required|exists:brands,id',
             'art_color' => 'required|string',
@@ -40,6 +49,8 @@ class SpkController extends BaseAdminController
             'details.*.qty' => 'required|integer|min:0',
             'details.*.barcode' => 'nullable|string|max:255',
             'start_date' => 'nullable|date',
+        ], [
+            'po_number.unique' => 'SPK dengan kombinasi Nomor PO, Merek, dan Model/Warna ini sudah ada. Silakan gunakan kombinasi yang berbeda.',
         ]);
 
         DB::transaction(function () use ($validated, $request) {
@@ -90,7 +101,16 @@ class SpkController extends BaseAdminController
     public function update(Request $request, Spk $spk): Response|Responsable
     {
         $validated = $request->validate([
-            'po_number' => 'required|string|unique:spks,po_number,'.$spk->id,
+            'po_number' => [
+                'required',
+                'string',
+                Rule::unique('spks', 'po_number')
+                    ->ignore($spk->id)
+                    ->where(fn ($q) => $q
+                        ->where('brand_id', $request->input('brand_id'))
+                        ->where('art_color', $request->input('art_color'))
+                    ),
+            ],
             'xfd_date' => 'required|date',
             'brand_id' => 'required|exists:brands,id',
             'art_color' => 'required|string',
@@ -100,6 +120,8 @@ class SpkController extends BaseAdminController
             'details.*.qty' => 'required|integer|min:0',
             'details.*.barcode' => 'nullable|string|max:255',
             'start_date' => 'nullable|date',
+        ], [
+            'po_number.unique' => 'SPK dengan kombinasi Nomor PO, Merek, dan Model/Warna ini sudah ada. Silakan gunakan kombinasi yang berbeda.',
         ]);
 
         DB::transaction(function () use ($validated, $spk, $request) {
