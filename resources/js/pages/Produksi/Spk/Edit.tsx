@@ -115,7 +115,8 @@ export default function Edit({ spk, brands }: any) {
                                     </p>
                                 )}
                                 <p className="mt-1 text-xs text-gray-500">
-                                    Bisa sama dengan PO lain asal Merek atau Model/Warna berbeda
+                                    Bisa sama dengan PO lain asal Merek atau
+                                    Model/Warna berbeda
                                 </p>
                             </div>
                             <div>
