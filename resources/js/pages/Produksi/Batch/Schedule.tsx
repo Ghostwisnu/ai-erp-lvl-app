@@ -240,7 +240,7 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
 
         const todayFormatted = new Date().toLocaleDateString('id-ID', {
             day: 'numeric',
-            month: 'Long',
+            month: 'long',
             year: 'numeric',
         });
 
