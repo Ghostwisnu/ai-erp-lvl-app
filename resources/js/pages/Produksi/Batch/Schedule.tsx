@@ -223,8 +223,31 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
     };
 
     // PDF Export function
-    const exportToPDF = () => {
+    const exportToPDF = async () => {
         const doc = new jsPDF('landscape', 'mm', 'a4');
+
+        // Preload logo image
+        let logoDataURL: string | null = null;
+        try {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            await new Promise<void>((resolve, reject) => {
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth;
+                    canvas.height = img.naturalHeight;
+                    const ctx = canvas.getContext('2d')!;
+                    ctx.drawImage(img, 0, 0);
+                    logoDataURL = canvas.toDataURL('image/jpeg', 0.8);
+                    resolve();
+                };
+                img.onerror = reject;
+                img.src = '/images/logo.jpeg';
+            });
+        } catch (e) {
+            // Logo gagal di-load, fallback ke teks brand
+            console.warn('Logo load failed, using text fallback');
+        }
 
         // Total width A4 landscape = 297mm, margin left=5, right=5 -> width available = 287mm
         // Table columns in target image:
@@ -263,12 +286,25 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
             doc.line(60, currentY, 60, currentY + 18);
             doc.line(230, currentY, 230, currentY + 18);
 
-            // Left: Brand Name
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text(brandName.toUpperCase(), 32.5, currentY + 10, {
-                align: 'center',
-            });
+            // Left: Logo (jika ada) atau Brand Name
+            if (logoDataURL) {
+                try {
+                    doc.addImage(logoDataURL, 'JPEG', 8, currentY + 2, 44, 14);
+                } catch (e) {
+                    // Fallback ke teks
+                    doc.setFontSize(14);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(brandName.toUpperCase(), 32.5, currentY + 10, {
+                        align: 'center',
+                    });
+                }
+            } else {
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'bold');
+                doc.text(brandName.toUpperCase(), 32.5, currentY + 10, {
+                    align: 'center',
+                });
+            }
             doc.setFontSize(7);
             doc.setFont('helvetica', 'normal');
             doc.text(`Update : ${todayFormatted}`, 32.5, currentY + 16, {
@@ -284,23 +320,30 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                 align: 'center',
             });
 
-            // Right: Doc Info
+            // Right: Doc Info - 4 baris terpisah dengan jarak aman
             doc.setFontSize(6);
             doc.setFont('helvetica', 'normal');
-            doc.text('No Dokumen', 232, currentY + 4);
-            doc.text(': FR-PPC-02-01', 260, currentY + 4);
+            const rightColX = 232;
+            const rightValX = 260;
+
+            // Baris 1: No Dokumen
+            doc.text('No Dokumen', rightColX, currentY + 4.5);
+            doc.text(': FR-PPC-02-01', rightValX, currentY + 4.5);
             doc.line(230, currentY + 5.5, 292, currentY + 5.5);
 
-            doc.text('Tgl Terbit', 232, currentY + 9.5);
-            doc.text(': 12 Februari 2025', 260, currentY + 9.5);
-            doc.line(230, currentY + 11, 292, currentY + 11);
+            // Baris 2: Tgl Terbit
+            doc.text('Tgl Terbit', rightColX, currentY + 9.5);
+            doc.text(': 12 Februari 2025', rightValX, currentY + 9.5);
+            doc.line(230, currentY + 10.5, 292, currentY + 10.5);
 
-            doc.text('Revisi', 232, currentY + 15);
-            doc.text(': 00', 260, currentY + 15);
-            doc.line(230, currentY + 16.5, 292, currentY + 16.5);
+            // Baris 3: Revisi
+            doc.text('Revisi', rightColX, currentY + 14.5);
+            doc.text(': 00', rightValX, currentY + 14.5);
+            doc.line(230, currentY + 15.5, 292, currentY + 15.5);
 
-            doc.text('Hal', 232, currentY + 17.5);
-            doc.text(': 1-1', 260, currentY + 17.5);
+            // Baris 4: Hal
+            doc.text('Hal', rightColX, currentY + 17.5);
+            doc.text(': 1-1', rightValX, currentY + 17.5);
 
             currentY += 21;
 
