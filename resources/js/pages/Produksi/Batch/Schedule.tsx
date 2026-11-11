@@ -694,13 +694,13 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                 { content: deptTotals.sewing.total || '0' },
                 { content: deptTotals.sewing.blc || '0' },
                 // Stroble
-                { content: stroble.daily > 0 ? stroble.daily : '' },
-                { content: stroble.total > 0 ? stroble.total : '0' },
-                { content: stroble.blc || '0' },
+                { content: deptTotals.stroble.daily || '0' },
+                { content: deptTotals.stroble.total || '0' },
+                { content: deptTotals.stroble.blc || '0' },
                 // Gudang Semi
-                { content: gudangSemi.daily > 0 ? gudangSemi.daily : '' },
-                { content: gudangSemi.total > 0 ? gudangSemi.total : '0' },
-                { content: gudangSemi.blc || '0' },
+                { content: deptTotals.gudang_semi.daily || '0' },
+                { content: deptTotals.gudang_semi.total || '0' },
+                { content: deptTotals.gudang_semi.blc || '0' },
                 // Lasting
                 { content: deptTotals.lasting.daily || '0' },
                 { content: deptTotals.lasting.total || '0' },
@@ -714,9 +714,9 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                 { content: deptTotals.finishing.total || '0' },
                 { content: deptTotals.finishing.blc || '0' },
                 // Finish Good
-                { content: finishGood.daily > 0 ? finishGood.daily : '' },
-                { content: finishGood.total > 0 ? finishGood.total : '0' },
-                { content: finishGood.blc || '0' },
+                { content: deptTotals.finish_good.daily || '0' },
+                { content: deptTotals.finish_good.total || '0' },
+                { content: deptTotals.finish_good.blc || '0' },
             ].map((item: any) => ({
                 ...item,
                 styles: {
