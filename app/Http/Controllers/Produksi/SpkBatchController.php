@@ -85,7 +85,7 @@ class SpkBatchController extends BaseAdminController
     public function updateTrack(Request $request, SpkBatch $batch): Response|Responsable
     {
         $request->validate([
-            'department' => 'required|in:cutting,sewing,lasting,cementing,injection,finishing,packing',
+            'department' => 'required|in:cutting,setting,sewing,stroble,gudang_semi,lasting,injection,finishing,packing',
             'start_date' => 'required|date',
         ]);
 
@@ -156,7 +156,7 @@ class SpkBatchController extends BaseAdminController
     {
         $request->validate([
             'report_date' => 'required|date',
-            'department' => 'required|in:cutting,sewing,lasting,cementing,injection,finishing,packing',
+            'department' => 'required|in:cutting,setting,sewing,stroble,gudang_semi,lasting,injection,finishing,packing',
             'items' => 'required|array',
             'items.*.spk_id' => 'required|exists:spks,id',
             'items.*.spk_batch_id' => 'nullable|exists:spk_batches,id',

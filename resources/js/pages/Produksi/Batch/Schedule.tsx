@@ -6,12 +6,14 @@ import autoTable from 'jspdf-autotable';
 export default function Schedule({ spks, finishingScans, brands }: any) {
     const departments = [
         { key: 'cutting', label: 'CUTTING' },
+        { key: 'setting', label: 'SETTING' },
         { key: 'sewing', label: 'SEWING' },
+        { key: 'stroble', label: 'STROBLE' },
+        { key: 'gudang_semi', label: 'GUDANG SEMI' },
         { key: 'lasting', label: 'LASTING' },
-        { key: 'cementing', label: 'CEMENTING' },
         { key: 'injection', label: 'INJECTION' },
         { key: 'finishing', label: 'FINISHING' },
-        { key: 'packing', label: 'PACKING' },
+        { key: 'packing', label: 'DELIVERY' },
     ];
 
     // --- STATE UNTUK BULK INPUT ---
@@ -511,14 +513,14 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                 };
 
                 const cutting = getDeptData('cutting');
-                const setting = getDeptData('cementing'); // using cementing as setting
+                const setting = getDeptData('setting');
                 const sewing = getDeptData('sewing');
-                // Stroble, Gudang Semi, Finish Good: no data source yet, placeholder
-                const _stroble = { daily: 0, total: 0, blc: row.qty };
-                const _gudangSemi = { daily: 0, total: 0, blc: row.qty };
+                const stroble = getDeptData('stroble');
+                const gudangSemi = getDeptData('gudang_semi');
                 const lasting = getDeptData('lasting');
                 const injection = getDeptData('injection');
                 const finishing = getDeptData('finishing');
+                const finishGood = getDeptData('packing');
 
                 // Accumulate totals
                 deptTotals.cutting.daily += cutting.daily;
@@ -533,6 +535,14 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                 deptTotals.sewing.total += sewing.total;
                 deptTotals.sewing.blc += sewing.blc;
 
+                deptTotals.stroble.daily += stroble.daily;
+                deptTotals.stroble.total += stroble.total;
+                deptTotals.stroble.blc += stroble.blc;
+
+                deptTotals.gudang_semi.daily += gudangSemi.daily;
+                deptTotals.gudang_semi.total += gudangSemi.total;
+                deptTotals.gudang_semi.blc += gudangSemi.blc;
+
                 deptTotals.lasting.daily += lasting.daily;
                 deptTotals.lasting.total += lasting.total;
                 deptTotals.lasting.blc += lasting.blc;
@@ -544,6 +554,10 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                 deptTotals.finishing.daily += finishing.daily;
                 deptTotals.finishing.total += finishing.total;
                 deptTotals.finishing.blc += finishing.blc;
+
+                deptTotals.finish_good.daily += finishGood.daily;
+                deptTotals.finish_good.total += finishGood.total;
+                deptTotals.finish_good.blc += finishGood.blc;
 
                 return [
                     idx + 1,
@@ -584,13 +598,27 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                         },
                     },
                     // Stroble
-                    '',
-                    '0',
-                    row.qty,
+                    stroble.daily > 0 ? stroble.daily : '',
+                    stroble.total > 0 ? stroble.total : '0',
+                    {
+                        content: stroble.blc,
+                        styles: {
+                            textColor:
+                                stroble.blc > 0 ? [180, 0, 0] : [0, 0, 0],
+                            fontStyle: stroble.blc > 0 ? 'bold' : 'normal',
+                        },
+                    },
                     // Gudang Semi
-                    '',
-                    '0',
-                    row.qty,
+                    gudangSemi.daily > 0 ? gudangSemi.daily : '',
+                    gudangSemi.total > 0 ? gudangSemi.total : '0',
+                    {
+                        content: gudangSemi.blc,
+                        styles: {
+                            textColor:
+                                gudangSemi.blc > 0 ? [180, 0, 0] : [0, 0, 0],
+                            fontStyle: gudangSemi.blc > 0 ? 'bold' : 'normal',
+                        },
+                    },
                     // Lasting
                     lasting.daily > 0 ? lasting.daily : '',
                     lasting.total > 0 ? lasting.total : '0',
@@ -625,8 +653,16 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                         },
                     },
                     // Finish Good
-                    '',
-                    row.qty,
+                    finishGood.daily > 0 ? finishGood.daily : '',
+                    finishGood.total > 0 ? finishGood.total : '0',
+                    {
+                        content: finishGood.blc,
+                        styles: {
+                            textColor:
+                                finishGood.blc > 0 ? [180, 0, 0] : [0, 0, 0],
+                            fontStyle: finishGood.blc > 0 ? 'bold' : 'normal',
+                        },
+                    },
                 ];
             });
 
@@ -658,13 +694,13 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                 { content: deptTotals.sewing.total || '0' },
                 { content: deptTotals.sewing.blc || '0' },
                 // Stroble
-                { content: '0' },
-                { content: '0' },
-                { content: totalQtySum },
+                { content: stroble.daily > 0 ? stroble.daily : '' },
+                { content: stroble.total > 0 ? stroble.total : '0' },
+                { content: stroble.blc || '0' },
                 // Gudang Semi
-                { content: '0' },
-                { content: '0' },
-                { content: totalQtySum },
+                { content: gudangSemi.daily > 0 ? gudangSemi.daily : '' },
+                { content: gudangSemi.total > 0 ? gudangSemi.total : '0' },
+                { content: gudangSemi.blc || '0' },
                 // Lasting
                 { content: deptTotals.lasting.daily || '0' },
                 { content: deptTotals.lasting.total || '0' },
@@ -677,9 +713,10 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                 { content: deptTotals.finishing.daily || '0' },
                 { content: deptTotals.finishing.total || '0' },
                 { content: deptTotals.finishing.blc || '0' },
-                // Finish good
-                { content: '0' },
-                { content: totalQtySum },
+                // Finish Good
+                { content: finishGood.daily > 0 ? finishGood.daily : '' },
+                { content: finishGood.total > 0 ? finishGood.total : '0' },
+                { content: finishGood.blc || '0' },
             ].map((item: any) => ({
                 ...item,
                 styles: {
@@ -721,60 +758,85 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
             // Draw WIP Summary Boxes below table if room available
             const finalY = (doc as any).lastAutoTable.finalY + 4;
 
-            // WIP Boxes: WIP CUTTING, WIP SETTING, WIP SEWING, WIP STROBLE, WIP LASTING, WIP INJECTION, WIP FINISHING
-            const wipBoxes = [
+            // WIP Box positions and labels matching the image layout
+            const wipBoxLayouts = [
                 {
                     label: 'WIP CUTTING',
-                    val: deptTotals.cutting.blc,
-                    startX: 80,
+                    startX: 75,
+                    prevDept: null,
+                    currDept: 'cutting',
                 },
                 {
                     label: 'WIP SETTING',
-                    val: deptTotals.setting.blc,
-                    startX: 105,
+                    startX: 100,
+                    prevDept: 'cutting',
+                    currDept: 'setting',
                 },
                 {
                     label: 'WIP SEWING',
-                    val: deptTotals.sewing.blc,
-                    startX: 130,
+                    startX: 125,
+                    prevDept: 'setting',
+                    currDept: 'sewing',
                 },
                 {
                     label: 'WIP STROBLE',
-                    val: deptTotals.stroble.blc || totalQtySum,
-                    startX: 155,
+                    startX: 150,
+                    prevDept: 'sewing',
+                    currDept: 'stroble',
+                },
+                {
+                    label: 'WIP G. SEMI',
+                    startX: 180,
+                    prevDept: 'stroble',
+                    currDept: 'gudang_semi',
                 },
                 {
                     label: 'WIP LASTING',
-                    val: deptTotals.lasting.blc,
-                    startX: 205,
+                    startX: 210,
+                    prevDept: 'gudang_semi',
+                    currDept: 'lasting',
                 },
                 {
                     label: 'WIP INJECTION',
-                    val: deptTotals.injection.blc,
-                    startX: 230,
+                    startX: 240,
+                    prevDept: 'lasting',
+                    currDept: 'injection',
                 },
                 {
                     label: 'WIP FINISHING',
-                    val: deptTotals.finishing.blc,
-                    startX: 255,
+                    startX: 265,
+                    prevDept: 'injection',
+                    currDept: 'finishing',
+                },
+                {
+                    label: 'WIP DELIVERY',
+                    startX: 290,
+                    prevDept: 'finishing',
+                    currDept: 'finish_good',
                 },
             ];
 
-            wipBoxes.forEach((box) => {
+            wipBoxLayouts.forEach((layout) => {
+                const prevTotal = layout.prevDept
+                    ? deptTotals[layout.prevDept].total
+                    : totalQtySum;
+                const currTotal = deptTotals[layout.currDept]?.total ?? 0;
+                const wipVal = Math.max((prevTotal || 0) - currTotal, 0);
+
                 doc.setFillColor(245, 230, 80);
-                doc.rect(box.startX, finalY, 20, 4, 'F');
-                doc.rect(box.startX, finalY, 20, 4, 'S');
+                doc.rect(layout.startX, finalY, 20, 4, 'F');
+                doc.rect(layout.startX, finalY, 20, 4, 'S');
 
                 doc.setFontSize(4.5);
                 doc.setFont('helvetica', 'bold');
-                doc.text(box.label, box.startX + 10, finalY + 2.8, {
+                doc.text(layout.label, layout.startX + 10, finalY + 2.8, {
                     align: 'center',
                 });
 
-                doc.rect(box.startX, finalY + 4, 20, 5, 'S');
+                doc.rect(layout.startX, finalY + 4, 20, 5, 'S');
                 doc.setFontSize(6);
                 doc.setFont('helvetica', 'normal');
-                doc.text(String(box.val), box.startX + 10, finalY + 7.5, {
+                doc.text(String(wipVal), layout.startX + 10, finalY + 7.5, {
                     align: 'center',
                 });
             });
