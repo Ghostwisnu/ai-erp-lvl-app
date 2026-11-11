@@ -828,34 +828,22 @@ export default function Schedule({ spks, finishingScans, brands }: any) {
                     currDept: 'stroble',
                 },
                 {
-                    label: 'WIP G. SEMI',
-                    startX: 180,
-                    prevDept: 'stroble',
-                    currDept: 'gudang_semi',
-                },
-                {
                     label: 'WIP LASTING',
-                    startX: 210,
-                    prevDept: 'gudang_semi',
+                    startX: 185,
+                    prevDept: 'stroble',
                     currDept: 'lasting',
                 },
                 {
                     label: 'WIP INJECTION',
-                    startX: 240,
+                    startX: 220,
                     prevDept: 'lasting',
                     currDept: 'injection',
                 },
                 {
                     label: 'WIP FINISHING',
-                    startX: 265,
+                    startX: 255,
                     prevDept: 'injection',
                     currDept: 'finishing',
-                },
-                {
-                    label: 'WIP DELIVERY',
-                    startX: 290,
-                    prevDept: 'finishing',
-                    currDept: 'finish_good',
                 },
             ];
 
