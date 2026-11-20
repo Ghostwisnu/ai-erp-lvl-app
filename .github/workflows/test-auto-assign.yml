@@ -1,0 +1,63 @@
+name: Test Auto-Assign
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to test assignment on'
+        required: true
+        type: number
+      labels:
+        description: 'Comma-separated labels to simulate'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  issues: write
+
+jobs:
+  test-assign:
+    runs-on: ubuntu-latest
+    if: github.actor == 'ghostwisnu'  # Hanya owner yang bisa trigger test ini
+
+    steps:
+      - name: Simulate label-based assignment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const testLabels = inputs.labels
+              ? inputs.labels.split(',').map(l => l.trim())
+              : ['backend', 'bug'];
+
+            const labelMap = {
+              'backend': ['backend-lead'],
+              'frontend': ['frontend-lead'],
+              'produksi': ['produksi-lead'],
+              'absensi': ['absensi-lead'],
+              'payroll': ['payroll-lead'],
+              'asset': ['asset-lead'],
+              'ci-cd': ['devops-lead'],
+              'bug': ['backend-lead'],
+              'enhancement': ['frontend-lead'],
+              'test': ['qa-lead'],
+            };
+
+            const expected = [];
+            for (const label of testLabels) {
+              if (labelMap[label] && !expected.includes(labelMap[label][0])) {
+                expected.push(labelMap[label][0]);
+              }
+            }
+            if (expected.length === 0) expected.push('ghostwisnu');
+
+            // Buat komentar test pada issue
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: inputs.issue_number,
+              body: `## ✅ Auto-Assign Test Passed\n\n**Simulated Labels:** ${testLabels.join(', ')}\n\n**Expected Assignees:** ${expected.join(', ')}\n\nWorkflow: \`.github/workflows/auto-assign.yml\` siap digunakan untuk otomatisasi penugasan issue/PR berdasarkan label dan prefix branch.`
+            });
+
+            console.log(`Test assignment for labels ${testLabels.join(', ')} -> ${expected.join(', ')}`);

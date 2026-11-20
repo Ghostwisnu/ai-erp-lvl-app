@@ -1,0 +1,100 @@
+name: Auto Assign
+
+on:
+  issues:
+    types: [opened, reopened]
+  pull_request:
+    types: [opened, reopened]
+
+permissions:
+  issues: write
+  pull_requests: write
+
+jobs:
+  auto-assign:
+    runs-on: ubuntu-latest
+    # Hanya jalan ketika issue/PR dibuka oleh anggota tim (bukan bot dependabot)
+    if: github.actor != 'dependabot[bot]' && github.actor != 'github-actions[bot]'
+
+    steps:
+      - name: Assign issue based on label
+        if: github.event_name == 'issues'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const labels = context.payload.issue.labels.map(l => l.name);
+            const assignees = [];
+
+            const labelMap = {
+              'backend': ['backend-lead'],
+              'frontend': ['frontend-lead'],
+              'produksi': ['produksi-lead'],
+              'absensi': ['absensi-lead'],
+              'payroll': ['payroll-lead'],
+              'asset': ['asset-lead'],
+              'ci-cd': ['devops-lead'],
+              'bug': ['backend-lead'],
+              'enhancement': ['frontend-lead'],
+              'test': ['qa-lead'],
+            };
+
+            for (const label of labels) {
+              if (labelMap[label] && !assignees.includes(labelMap[label][0])) {
+                assignees.push(labelMap[label][0]);
+              }
+            }
+
+            // Jika tidak ada label yang cocok, assign ke maintainer default
+            if (assignees.length === 0) {
+              assignees.push('ghostwisnu');
+            }
+
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              assignees: assignees.slice(0, 5), // Maksimal 5 assignee
+            });
+
+            console.log(`Assigned issue #${context.payload.issue.number} to: ${assignees.join(', ')}`);
+
+      - name: Assign PR based on branch prefix
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const branch = context.payload.pull_request.head.ref;
+            const assignees = [];
+
+            const prefixMap = {
+              'copilot/': ['copilot-agent'],
+              'fix/': ['backend-lead'],
+              'feat/': ['backend-lead'],
+              'refactor/': ['backend-lead'],
+              'test/': ['qa-lead'],
+              'docs/': ['tech-writer'],
+              'ci/': ['devops-lead'],
+              'deploy/': ['devops-lead'],
+            };
+
+            for (const [prefix, users] of Object.entries(prefixMap)) {
+              if (branch.startsWith(prefix)) {
+                assignees.push(...users);
+                break;
+              }
+            }
+
+            if (assignees.length === 0) {
+              assignees.push('ghostwisnu');
+            }
+
+            await github.rest.pulls.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              assignees: assignees.slice(0, 5),
+            });
+
+            console.log(`Assigned PR #${context.payload.pull_request.number} (branch: ${branch}) to: ${assignees.join(', ')}`);
