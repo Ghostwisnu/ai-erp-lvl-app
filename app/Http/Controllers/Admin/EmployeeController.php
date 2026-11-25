@@ -116,6 +116,7 @@ class EmployeeController extends BaseAdminController
         }
 
         // Check if all rows are invalid
+        /** @phpstan-ignore-next-line argument.templateType */
         $validRows = collect($previewData)->filter(fn ($data) => $data['is_valid'])->count();
         if ($validRows === 0) {
             session()->forget('import_employees_preview');
