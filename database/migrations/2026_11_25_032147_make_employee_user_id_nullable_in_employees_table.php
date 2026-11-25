@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -12,19 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // MySQL: Drop foreign key, alter column to nullable, recreate foreign key
-        Schema::table('employees', function (Blueprint $table) {
-            // Drop the foreign key constraint first
-            $table->dropForeign(['user_id']);
-        });
-
-        // Alter the column to be nullable using raw SQL for MySQL compatibility
-        DB::statement('ALTER TABLE employees ALTER user_id DROP NOT NULL');
-
-        Schema::table('employees', function (Blueprint $table) {
-            // Recreate the foreign key with nullable user_id
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-        });
+        try {
+            Schema::table('employees', function (Blueprint $table) {
+                $table->foreignId('user_id')->nullable()->change();
+            });
+        } catch (Exception $e) {
+            // SQLite fallback - recreate table with nullable user_id
+            Schema::disableForeignKeyConstraints();
+            Schema::table('employees', function (Blueprint $table) {
+                // SQLite: drop and recreate column to make nullable
+                $table->dropColumn('user_id');
+            });
+            Schema::table('employees', function (Blueprint $table) {
+                $table->foreignId('user_id')->nullable()->after('id');
+            });
+            Schema::enableForeignKeyConstraints();
+        }
     }
 
     /**
@@ -32,17 +34,19 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('employees', function (Blueprint $table) {
-            // Drop the foreign key
-            $table->dropForeign(['user_id']);
-        });
-
-        // Alter the column back to NOT NULL using raw SQL for MySQL compatibility
-        DB::statement('ALTER TABLE employees ALTER user_id SET NOT NULL');
-
-        Schema::table('employees', function (Blueprint $table) {
-            // Recreate the foreign key
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-        });
+        try {
+            Schema::table('employees', function (Blueprint $table) {
+                $table->foreignId('user_id')->nullable(false)->change();
+            });
+        } catch (Exception $e) {
+            Schema::disableForeignKeyConstraints();
+            Schema::table('employees', function (Blueprint $table) {
+                $table->dropColumn('user_id');
+            });
+            Schema::table('employees', function (Blueprint $table) {
+                $table->foreignId('user_id')->after('id');
+            });
+            Schema::enableForeignKeyConstraints();
+        }
     }
 };
