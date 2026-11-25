@@ -284,4 +284,4 @@ async function main() {
     console.log('  3. Use @team memory context to load project context');
 }
 
-main();
+void main();
