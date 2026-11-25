@@ -13,9 +13,10 @@ class PpsExport implements FromCollection, WithHeadings
 {
     private const DEPARTMENTS = [
         'cutting' => 'PEMOTONGAN',
+        'setting' => 'PENGELEMAN',
         'sewing' => 'PENJAHITAN',
+        'stroble' => 'STROBLE',
         'lasting' => 'PEMASANGAN SOL',
-        'cementing' => 'PENGELEMAN',
         'injection' => 'INJEKSI',
         'finishing' => 'PENYELESAIAN',
         'packing' => 'PENGEMASAN',

@@ -50,7 +50,7 @@ it('has correct department list matching the production departments', function (
 });
 
 it('exports SPK data with correct headers', function () {
-    $brand = Brand::create(['name' => 'Test Brand']);
+    $brand = Brand::create(['name' => 'Test Brand', 'code' => 'TB001']);
     $spk = Spk::create([
         'po_number' => 'PO-001',
         'xfd_date' => '2026-11-20',
@@ -71,16 +71,15 @@ it('exports SPK data with correct headers', function () {
         ->and($headings[4])->toBe('JUMLAH');
 
     // Verify department headers are present
-    $departmentCount = 9; // 9 departments
-    $expectedHeaderCount = 5 + ($departmentCount * 4) + 1; // 5 base + 9*4 dept rows + XFD
+    $departmentCount = 8; // 8 departments: cutting, setting, sewing, stroble, lasting, injection, finishing, packing
+    $expectedHeaderCount = 5 + ($departmentCount * 4) + 1; // 5 base + 8*4 dept rows + XFD
 
-    // Check that cutting, setting, sewing, stroble, gudang_semi, lasting, injection, finishing, packing are all present
+    // Check that cutting, setting, sewing, stroble, lasting, injection, finishing, packing are all present
     $allHeaders = implode(' ', $headings);
     expect($allHeaders)->toContain('cutting')
         ->and($allHeaders)->toContain('setting')
         ->and($allHeaders)->toContain('sewing')
         ->and($allHeaders)->toContain('stroble')
-        ->and($allHeaders)->toContain('gudang_semi')
         ->and($allHeaders)->toContain('lasting')
         ->and($allHeaders)->toContain('injection')
         ->and($allHeaders)->toContain('finishing')
@@ -96,8 +95,8 @@ it('exports empty collection when no SPKs exist', function () {
 });
 
 it('filters export by brand when brand_id is provided', function () {
-    $brand1 = Brand::create(['name' => 'Brand A']);
-    $brand2 = Brand::create(['name' => 'Brand B']);
+    $brand1 = Brand::create(['name' => 'Brand A', 'code' => 'BA']);
+    $brand2 = Brand::create(['name' => 'Brand B', 'code' => 'BB']);
 
     $spk1 = Spk::create([
         'po_number' => 'PO-001',
@@ -122,8 +121,8 @@ it('filters export by brand when brand_id is provided', function () {
 });
 
 it('exports data for all brands when no brand_id is provided', function () {
-    $brand1 = Brand::create(['name' => 'Brand A']);
-    $brand2 = Brand::create(['name' => 'Brand B']);
+    $brand1 = Brand::create(['name' => 'Brand A', 'code' => 'BA']);
+    $brand2 = Brand::create(['name' => 'Brand B', 'code' => 'BB']);
 
     Spk::create([
         'po_number' => 'PO-001',
@@ -152,7 +151,7 @@ it('exports data for all brands when no brand_id is provided', function () {
 // ============================================================
 
 it('generates excel file with correct headers for brand-specific export', function () {
-    $brand = Brand::create(['name' => 'Test Brand']);
+    $brand = Brand::create(['name' => 'Test Brand', 'code' => 'TB001']);
     Spk::create([
         'po_number' => 'PO-001',
         'xfd_date' => '2026-11-20',

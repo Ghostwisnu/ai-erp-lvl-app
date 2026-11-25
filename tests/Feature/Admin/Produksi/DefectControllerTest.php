@@ -18,7 +18,7 @@ beforeEach(function () {
     $this->admin->givePermissionTo($permission);
     $this->actingAs($this->admin);
 
-    $this->brand = Brand::create(['name' => 'Test Brand']);
+    $this->brand = Brand::create(['name' => 'Test Brand', 'code' => 'TB001']);
 
     $this->spk = Spk::create([
         'po_number' => 'PO-001',
