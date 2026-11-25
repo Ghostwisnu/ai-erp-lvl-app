@@ -91,6 +91,46 @@ class MenuSeeder extends Seeder
             'order' => 7,
             'permission_name' => 'manage-payroll',
         ]);
+
+        // Menu: Produksi (order 8 - after HRIS)
+        $menuProduksi = $this->syncMenu(null, 'Produksi', [
+            'route' => null,
+            'icon' => 'box',
+            'order' => 8,
+            'permission_name' => 'manage-produksi',
+        ]);
+
+        // Submenu Produksi
+        $this->syncSubMenu($menuProduksi, 'SPK', 'SPK', [
+            'route' => '/produksi/spks',
+            'order' => 1,
+            'permission_name' => 'manage-spk',
+        ]);
+        $this->syncSubMenu($menuProduksi, 'PPS (Schedule)', 'PPS (Schedule)', [
+            'route' => '/produksi/spk-schedules',
+            'order' => 2,
+            'permission_name' => 'manage-spk',
+        ]);
+        $this->syncSubMenu($menuProduksi, 'Produksi Scan', 'Produksi Scan', [
+            'route' => '/produksi/scan',
+            'order' => 3,
+            'permission_name' => 'manage-scans',
+        ]);
+        $this->syncSubMenu($menuProduksi, 'Daily Defect', 'Daily Defect', [
+            'route' => '/produksi/defects',
+            'order' => 4,
+            'permission_name' => 'manage-defects',
+        ]);
+        $this->syncSubMenu($menuProduksi, 'Report QC', 'Report QC', [
+            'route' => '/produksi/report-qc',
+            'order' => 5,
+            'permission_name' => 'manage-report-qc',
+        ]);
+        $this->syncSubMenu($menuProduksi, 'Monitor QC', 'Monitor QC', [
+            'route' => '/produksi/monitor-qc',
+            'order' => 6,
+            'permission_name' => 'manage-monitor-qc',
+        ]);
     }
 
     /** @param array<string, int|string> $attributes */

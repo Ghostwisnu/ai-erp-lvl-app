@@ -134,17 +134,17 @@ Route::middleware(['auth'])->prefix('produksi')->name('produksi.')->group(functi
     Route::get('/spk-schedules/export', [SpkBatchController::class, 'exportSchedule'])->name('spk-schedules.export')->middleware('permission:manage-spk');
     Route::get('/spk-schedules', [SpkBatchController::class, 'schedule'])->name('spk-schedules.index')->middleware('permission:manage-spk');
 
-    Route::get('/scan', [ScanController::class, 'index'])->name('scan.index')->middleware('permission:manage-scan');
-    Route::get('/scan/{department}', [ScanController::class, 'scan'])->name('scan.board')->middleware('permission:manage-scan');
-    Route::post('/scan/submit', [ScanController::class, 'submitScan'])->name('scan.submit')->middleware('permission:manage-scan');
+    Route::get('/scan', [ScanController::class, 'index'])->name('scan.index')->middleware('permission:manage-scans');
+    Route::get('/scan/{department}', [ScanController::class, 'scan'])->name('scan.board')->middleware('permission:manage-scans');
+    Route::post('/scan/submit', [ScanController::class, 'submitScan'])->name('scan.submit')->middleware('permission:manage-scans');
 
     Route::get('/defects', [DefectController::class, 'index'])->name('defects.index')->middleware('permission:manage-defects');
     Route::post('/defects', [DefectController::class, 'store'])->name('defects.store')->middleware('permission:manage-defects');
 
-    Route::get('/report-qc', [ReportQcController::class, 'index'])->name('report-qc.index')->middleware('permission:manage-qc');
-    Route::get('/report-qc/{spk}', [ReportQcController::class, 'show'])->name('report-qc.show')->middleware('permission:manage-qc');
+    Route::get('/report-qc', [ReportQcController::class, 'index'])->name('report-qc.index')->middleware('permission:manage-report-qc');
+    Route::get('/report-qc/{spk}', [ReportQcController::class, 'show'])->name('report-qc.show')->middleware('permission:manage-report-qc');
 
-    Route::get('/monitor-qc', [MonitorQcController::class, 'index'])->name('monitor-qc.index')->middleware('permission:manage-qc');
+    Route::get('/monitor-qc', [MonitorQcController::class, 'index'])->name('monitor-qc.index')->middleware('permission:manage-monitor-qc');
 });
 
 // 3. Route Dashboard (Redirect ke Admin)
