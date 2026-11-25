@@ -232,23 +232,25 @@ it('validates department against approved list', function () {
     expect($response->status())->toBeIn([302, 422, 403]);
 });
 
-it('ends previous track when starting a new one', function () {
+it("ends previous track when starting a new one", function () {
+    Carbon::setTestNow("2026-11-10 12:00:00");
+
     $batch = SpkBatch::create([
-        'spk_id' => $this->spk->id,
-        'batch_code' => 'BATCH-001',
-        'qty' => 100,
+        "spk_id" => $this->spk->id,
+        "batch_code" => "BATCH-001",
+        "qty" => 100,
     ]);
 
     // First track
     $firstTrack = $batch->tracks()->create([
-        'department' => 'cutting',
-        'start_date' => '2026-11-05',
+        "department" => "cutting",
+        "start_date" => "2026-11-05",
     ]);
 
     // Start a new track
-    $this->post(route('produksi.spk-batches.update-track', $batch), [
-        'department' => 'sewing',
-        'start_date' => '2026-11-10',
+    $this->post(route("produksi.spk-batches.update-track", $batch), [
+        "department" => "sewing",
+        "start_date" => "2026-11-10",
     ]);
 
     $tracks = $batch->fresh()->tracks;
@@ -259,20 +261,22 @@ it('ends previous track when starting a new one', function () {
     $startDate2 = $tracks[1]->start_date;
 
     if ($endDate instanceof Carbon) {
-        expect($endDate->format('Y-m-d'))->toBe('2026-11-09');
+        expect($endDate->format("Y-m-d"))->toBe("2026-11-09");
     } else {
-        expect($endDate)->toBe('2026-11-09');
+        expect($endDate)->toBe("2026-11-09");
     }
 
     if ($startDate2 instanceof Carbon) {
-        expect($startDate2->format('Y-m-d'))->toBe('2026-11-10');
+        expect($startDate2->format("Y-m-d"))->toBe("2026-11-10");
     } else {
-        expect($startDate2)->toBe('2026-11-10');
+        expect($startDate2)->toBe("2026-11-10");
     }
 
     expect($tracks[1]->end_date)->toBeNull()
-        ->and($batch->fresh()->current_department)->toBe('sewing')
-        ->and($batch->fresh()->status)->toBe('in_progress');
+        ->and($batch->fresh()->current_department)->toBe("sewing")
+        ->and($batch->fresh()->status)->toBe("in_progress");
+
+    Carbon::setTestNow();
 });
 
 // ============================================================

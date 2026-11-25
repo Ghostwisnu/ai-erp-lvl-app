@@ -73,9 +73,9 @@ it('shows defect categories filtered by brand', function () {
 
     $response->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->has('defectCategories.data', 1)
-            ->where('defectCategories.data.0.name', 'Gerah')
-            ->where('defectCategories.data.1.name', 'Retak'));
+            ->has('defectCategories', 2)
+            ->where('defectCategories.0.name', 'Gerah')
+            ->where('defectCategories.1.name', 'Retak'));
 });
 
 // ============================================================
