@@ -214,11 +214,13 @@ class LeaveRequestController extends BaseAdminController
     {
         $validated = $request->validate([
             'status' => 'required|in:approved,rejected',
-            'approval_note' => 'nullable|string',
+            'approval_note' => ['nullable', 'string'],
         ]);
 
-        // Ensure approval_note exists in validated array
-        $validated['approval_note'] = $validated['approval_note'] ?? null;
+        // Ensure approval_note exists in validated array (handle Laravel 12 edge case)
+        if (! isset($validated['approval_note'])) {
+            $validated['approval_note'] = null;
+        }
 
         DB::transaction(function () use ($leaveRequest, $validated) {
             $lockedRequest = LeaveRequest::query()

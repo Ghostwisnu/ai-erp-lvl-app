@@ -16,7 +16,7 @@ return new class extends Migration
                 $table->string('birth_place')->nullable()->change();
                 $table->string('birth_date')->nullable()->change();
             });
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // SQLite fallback
             Schema::disableForeignKeyConstraints();
             Schema::table('employees', function (Blueprint $table) {
@@ -40,7 +40,7 @@ return new class extends Migration
                 $table->string('birth_place')->nullable(false)->change();
                 $table->string('birth_date')->nullable(false)->change();
             });
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Schema::disableForeignKeyConstraints();
             Schema::table('employees', function (Blueprint $table) {
                 $table->dropColumn(['birth_place', 'birth_date']);

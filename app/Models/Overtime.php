@@ -10,6 +10,10 @@ class Overtime extends Model
 {
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'date' => 'date',
+    ];
+
     // Relasi ke Karyawan yang lembur
     /** @return BelongsToMany<Employee, $this> */
     public function employees(): BelongsToMany

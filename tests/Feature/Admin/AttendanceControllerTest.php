@@ -311,6 +311,7 @@ it('validates attendance status values', function () {
     ]);
 
     // Should succeed (no server-side validation) and redirect back, or return 500 if there's an error
+    // (Laravel 12 may handle invalid data differently)
     expect($response->status())->toBeIn([302, 500]);
 });
 
