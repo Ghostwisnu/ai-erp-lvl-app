@@ -14,11 +14,26 @@ class EmployeesImport implements ToCollection, WithHeadingRow
     /** @var list<array{name: string, employee_code: string, department: mixed, position: mixed, role: mixed, join_date: string|null, status: string, is_valid: bool}> */
     public $previewData = [];
 
-    /** @param Collection<int, array<string, mixed>> $rows */
     public function collection(Collection $rows): void
     {
         $seenCodes = [];
+        $duplicateCodes = [];
 
+        // First pass: identify duplicate codes within the file
+        foreach ($rows as $row) {
+            $employeeCode = strtoupper(trim((string) ($row['kode_karyawan'] ?? '')));
+            if ($employeeCode !== '') {
+                if (isset($seenCodes[$employeeCode])) {
+                    $duplicateCodes[$employeeCode] = true;
+                }
+                $seenCodes[$employeeCode] = true;
+            }
+        }
+
+        // Reset for second pass
+        $seenCodes = [];
+
+        // Second pass: validate and build preview data
         foreach ($rows as $index => $row) {
             $name = trim((string) ($row['nama'] ?? ''));
             $employeeCode = trim((string) ($row['kode_karyawan'] ?? ''));
@@ -34,16 +49,21 @@ class EmployeesImport implements ToCollection, WithHeadingRow
                 $errors[] = 'Nama wajib diisi.';
             }
 
+            $upperCode = strtoupper($employeeCode);
             if ($employeeCode === '') {
                 $errors[] = 'Kode karyawan wajib diisi.';
-            } elseif (isset($seenCodes[$employeeCode])) {
+            } elseif (isset($duplicateCodes[$upperCode])) {
+                // Code appears multiple times in file - flag as duplicate
                 $errors[] = 'Kode karyawan duplikat di dalam file.';
-            } elseif (Employee::where('employee_code', $employeeCode)->exists()) {
+            } elseif (isset($seenCodes[$upperCode])) {
+                // Already processed this code once in this file
+                $errors[] = 'Kode karyawan duplikat di dalam file.';
+            } elseif (Employee::where('employee_code', 'like', $upperCode)->exists()) {
                 $errors[] = 'Kode karyawan sudah terdaftar.';
             }
 
             if ($employeeCode !== '') {
-                $seenCodes[$employeeCode] = true;
+                $seenCodes[$upperCode] = true;
             }
 
             if (! $joinDate) {

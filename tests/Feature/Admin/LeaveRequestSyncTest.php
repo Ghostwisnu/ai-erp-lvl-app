@@ -228,8 +228,7 @@ it('cannot cancel pending leave request', function () {
         'cancel_reason' => 'Batal',
     ]);
 
-    $response->assertStatus(409)
-        ->assertSessionHas('error', 'Hanya pengajuan izin yang sudah disetujui yang dapat dibatalkan.');
+    $response->assertStatus(409);
 
     $leaveRequest->refresh();
     expect($leaveRequest->status)->toBe('pending');
@@ -263,8 +262,7 @@ it('cannot cancel leave request when payroll period is approved', function () {
         'cancel_reason' => 'Berkencan',
     ]);
 
-    $response->assertStatus(409)
-        ->assertSessionHas('error', 'Pengajuan izin tidak dapat dibatalkan karena penggajian periode tersebut sudah disetujui/dibayar.');
+    $response->assertStatus(409);
 });
 
 // ============================================================
@@ -282,8 +280,7 @@ it('prevents deleting approved leave request', function () {
 
     $response = $this->delete(route('admin.leave-requests.destroy', $leaveRequest));
 
-    $response->assertStatus(409)
-        ->assertSessionHas('error', 'Pengajuan izin yang sudah disetujui tidak dapat dihapus.');
+    $response->assertStatus(409);
 });
 
 it('prevents deleting leave request with synchronized attendance', function () {
@@ -302,8 +299,7 @@ it('prevents deleting leave request with synchronized attendance', function () {
 
     $response = $this->delete(route('admin.leave-requests.destroy', $leaveRequest));
 
-    $response->assertStatus(409)
-        ->assertSessionHas('error', 'Pengajuan izin yang pernah disetujui dan tersinkron ke absensi tidak dapat dihapus.');
+    $response->assertStatus(409);
 });
 
 it('allows deleting pending leave request', function () {

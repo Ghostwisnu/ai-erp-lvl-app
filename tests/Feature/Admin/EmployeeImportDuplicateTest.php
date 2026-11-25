@@ -62,6 +62,9 @@ it('detects existing employee code in database', function () {
     Employee::create([
         'employee_code' => 'EMP-200',
         'full_name' => 'Existing Employee',
+        'birth_place' => 'Bandung',
+        'birth_date' => '1990-01-01',
+        'gender' => 'L',
         'department' => 'IT',
         'position' => 'Staff',
         'join_date' => '2020-01-01',
@@ -162,7 +165,7 @@ it('detects empty required fields', function () {
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('previewData.0.is_valid', false)
-            ->whereLike('previewData.0.status', 'Nama wajib diisi'));
+            ->where('previewData.0.status', 'Nama wajib diisi. Tanggal bergabung wajib diisi dengan tanggal yang valid.'));
 });
 
 // ============================================================

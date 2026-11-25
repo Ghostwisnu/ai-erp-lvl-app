@@ -9,6 +9,7 @@ use App\Models\ProductionDaily;
 use App\Models\Spk;
 use App\Models\SpkBatch;
 use App\Models\SpkBatchTrack;
+use Carbon\Carbon;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -90,7 +91,8 @@ class SpkBatchController extends BaseAdminController
         ]);
 
         DB::transaction(function () use ($batch, $request) {
-            $batch->tracks()->whereNull('end_date')->update(['end_date' => now()]);
+            $newStartDate = Carbon::parse($request->start_date);
+            $batch->tracks()->whereNull('end_date')->update(['end_date' => $newStartDate->copy()->subDay()]);
             $track = $batch->tracks()->create([
                 'department' => $request->department,
                 'start_date' => $request->start_date,
