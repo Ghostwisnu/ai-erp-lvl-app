@@ -133,11 +133,12 @@ class MenuSeeder extends Seeder
         ]);
     }
 
-    /** @param array<string, int|string> $attributes */
-    private function syncMenu(string $legacyName, string $name, array $attributes): Menu
+    /** @param array<string, int|string|null> $attributes */
+    private function syncMenu(?string $legacyName, string $name, array $attributes): Menu
     {
+        $names = array_filter([$legacyName, $name]); // Remove nulls
         $menu = Menu::query()
-            ->whereIn('name', array_unique([$legacyName, $name]))
+            ->whereIn('name', $names)
             ->first() ?? new Menu;
 
         $menu->fill(['name' => $name, ...$attributes])->save();
