@@ -14,7 +14,7 @@ uses(RefreshDatabase::class);
 beforeEach(function () {
     app(PermissionRegistrar::class)->forgetCachedPermissions();
     $permission = Permission::findOrCreate('manage-defects', 'web');
-    $this->admin = User::factory()->create();
+    $this->admin = User::factory()->create(['name' => 'Test Admin']);
     $this->admin->givePermissionTo($permission);
     $this->actingAs($this->admin);
 
@@ -157,6 +157,7 @@ it('shows defects for different departments', function () {
         'defect_category_id' => $this->defectCategory->id,
         'department' => 'qc',
         'qty' => 5,
+        'reported_by' => $this->admin->name,
     ]);
 
     ProductionDefect::create([
@@ -164,6 +165,7 @@ it('shows defects for different departments', function () {
         'defect_category_id' => $this->defectCategory->id,
         'department' => 'warehouse',
         'qty' => 3,
+        'reported_by' => $this->admin->name,
     ]);
 
     // QC department
@@ -183,6 +185,7 @@ it('shows today\'s defects by default', function () {
         'defect_category_id' => $this->defectCategory->id,
         'department' => 'qc',
         'qty' => 5,
+        'reported_by' => $this->admin->name,
     ]);
 
     $response = $this->get(route('produksi.defects.index'));

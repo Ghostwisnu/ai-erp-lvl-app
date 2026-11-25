@@ -24,9 +24,8 @@ beforeEach(function () {
 
 it('has correct department list matching the production departments', function () {
     // The DEPARTMENTS constant should match the validation in SpkBatchController
-    // Approved departments: cutting, setting, sewing, stroble, gudang_semi, lasting, injection, finishing, packing
-    // Old (buggy) departments in export: cutting, cementing, sewing, lasting, injection, finishing, packing
-    // Missing: setting, stroble, gudang_semi
+    // Approved departments: cutting, setting, sewing, stroble, lasting, injection, finishing, packing
+    // (8 departments - gudang_semi and packing are NOT in WIP boxes per requirement)
 
     $export = new PpsExport;
 
@@ -39,14 +38,14 @@ it('has correct department list matching the production departments', function (
         ->and(array_keys($constant))->toContain('setting')
         ->and(array_keys($constant))->toContain('sewing')
         ->and(array_keys($constant))->toContain('stroble')
-        ->and(array_keys($constant))->toContain('gudang_semi')
         ->and(array_keys($constant))->toContain('lasting')
         ->and(array_keys($constant))->toContain('injection')
         ->and(array_keys($constant))->toContain('finishing')
         ->and(array_keys($constant))->toContain('packing');
 
     // Assert OLD buggy department names are NOT present
-    expect(array_keys($constant))->not->toContain('cementing');
+    expect(array_keys($constant))->not->toContain('cementing')
+        ->and(array_keys($constant))->not->toContain('gudang_semi');
 });
 
 it('exports SPK data with correct headers', function () {
@@ -74,17 +73,21 @@ it('exports SPK data with correct headers', function () {
     $departmentCount = 8; // 8 departments: cutting, setting, sewing, stroble, lasting, injection, finishing, packing
     $expectedHeaderCount = 5 + ($departmentCount * 4) + 1; // 5 base + 8*4 dept rows + XFD
 
-    // Check that cutting, setting, sewing, stroble, lasting, injection, finishing, packing are all present
+    // Check that all headers contain the correct departments
     $allHeaders = implode(' ', $headings);
-    expect($allHeaders)->toContain('cutting')
-        ->and($allHeaders)->toContain('setting')
-        ->and($allHeaders)->toContain('sewing')
-        ->and($allHeaders)->toContain('stroble')
-        ->and($allHeaders)->toContain('lasting')
-        ->and($allHeaders)->toContain('injection')
-        ->and($allHeaders)->toContain('finishing')
-        ->and($allHeaders)->toContain('packing')
-        ->and($allHeaders)->toContain('XFD');
+
+    // Convert to uppercase for case-insensitive matching
+    $allHeadersUpper = strtoupper($allHeaders);
+
+    expect($allHeadersUpper)->toContain('PEMOTONGAN')  // cutting
+        ->and($allHeadersUpper)->toContain('PENGELEMAN')  // setting
+        ->and($allHeadersUpper)->toContain('PENJAHITAN')  // sewing
+        ->and($allHeadersUpper)->toContain('STROBLE')  // stroble
+        ->and($allHeadersUpper)->toContain('PEMASANGAN SOL')  // lasting
+        ->and($allHeadersUpper)->toContain('INJEKSI')  // injection
+        ->and($allHeadersUpper)->toContain('PENYELESAIAN')  // finishing
+        ->and($allHeadersUpper)->toContain('PENGEMASAN')  // packing
+        ->and($allHeadersUpper)->toContain('XFD');
 });
 
 it('exports empty collection when no SPKs exist', function () {
