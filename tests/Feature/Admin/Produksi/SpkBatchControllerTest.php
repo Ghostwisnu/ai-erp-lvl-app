@@ -209,7 +209,9 @@ it('updates batch track for valid department', function () {
     $response->assertRedirect()
         ->assertSessionHas('success', 'Posisi batch berhasil diupdate.');
 
-    expect($batch->fresh()->current_department)->toBe('cutting')
+    $batch->refresh();
+
+    expect($batch->current_department)->toBe('cutting')
         ->and($batch->status)->toBe('in_progress');
 });
 
@@ -237,7 +239,7 @@ it('ends previous track when starting a new one', function () {
     ]);
 
     // First track
-    $batch->tracks()->create([
+    $firstTrack = $batch->tracks()->create([
         'department' => 'cutting',
         'start_date' => '2026-11-05',
     ]);
@@ -254,7 +256,8 @@ it('ends previous track when starting a new one', function () {
     expect($tracks[0]->end_date->format('Y-m-d'))->toBe('2026-11-09')
         ->and($tracks[1]->start_date->format('Y-m-d'))->toBe('2026-11-10')
         ->and($tracks[1]->end_date)->toBeNull()
-        ->and($batch->fresh()->current_department)->toBe('sewing');
+        ->and($batch->fresh()->current_department)->toBe('sewing')
+        ->and($batch->fresh()->status)->toBe('in_progress');
 });
 
 // ============================================================

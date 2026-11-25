@@ -91,7 +91,7 @@ class SpkBatchController extends BaseAdminController
 
         DB::transaction(function () use ($batch, $request) {
             $batch->tracks()->whereNull('end_date')->update(['end_date' => now()]);
-            $batch->tracks()->create([
+            $track = $batch->tracks()->create([
                 'department' => $request->department,
                 'start_date' => $request->start_date,
             ]);

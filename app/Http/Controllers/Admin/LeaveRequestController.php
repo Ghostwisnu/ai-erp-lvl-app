@@ -217,6 +217,9 @@ class LeaveRequestController extends BaseAdminController
             'approval_note' => 'nullable|string',
         ]);
 
+        // Ensure approval_note exists in validated array
+        $validated['approval_note'] = $validated['approval_note'] ?? null;
+
         DB::transaction(function () use ($leaveRequest, $validated) {
             $lockedRequest = LeaveRequest::query()
                 ->lockForUpdate()
