@@ -235,8 +235,9 @@ it('ends previous track when starting a new one', function () {
 
     $tracks = $batch->fresh()->tracks;
 
-    expect($tracks[0]->end_date->toDateString())->toBe('2026-11-09')
-        ->and($tracks[1]->start_date->toDateString())->toBe('2026-11-10')
+    // Check dates are Carbon objects with proper dates
+    expect($tracks[0]->end_date->format('Y-m-d'))->toBe('2026-11-09')
+        ->and($tracks[1]->start_date->format('Y-m-d'))->toBe('2026-11-10')
         ->and($tracks[1]->end_date)->toBeNull()
         ->and($batch->fresh()->current_department)->toBe('sewing');
 });

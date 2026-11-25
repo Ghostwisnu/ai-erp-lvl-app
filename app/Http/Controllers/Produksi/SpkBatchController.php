@@ -90,7 +90,7 @@ class SpkBatchController extends BaseAdminController
         ]);
 
         DB::transaction(function () use ($batch, $request) {
-            $batch->tracks()->whereNull('end_date')->update(['end_date' => now()->toDateString()]);
+            $batch->tracks()->whereNull('end_date')->update(['end_date' => now()]);
             $batch->tracks()->create([
                 'department' => $request->department,
                 'start_date' => $request->start_date,
@@ -169,10 +169,12 @@ class SpkBatchController extends BaseAdminController
                     continue;
                 }
 
+                $spkBatchId = $item['spk_batch_id'] ?? null;
+
                 $existing = ProductionDaily::where('department', $request->department)
                     ->where('report_date', $request->report_date)
-                    ->when($item['spk_batch_id'], fn ($q) => $q->where('spk_batch_id', $item['spk_batch_id']))
-                    ->when(! $item['spk_batch_id'], fn ($q) => $q->where('spk_id', $item['spk_id'])->whereNull('spk_batch_id'))
+                    ->when($spkBatchId, fn ($q) => $q->where('spk_batch_id', $spkBatchId))
+                    ->when(! $spkBatchId, fn ($q) => $q->where('spk_id', $item['spk_id'])->whereNull('spk_batch_id'))
                     ->first();
 
                 if ($existing) {
@@ -180,7 +182,7 @@ class SpkBatchController extends BaseAdminController
                 } else {
                     ProductionDaily::create([
                         'spk_id' => $item['spk_id'],
-                        'spk_batch_id' => $item['spk_batch_id'],
+                        'spk_batch_id' => $spkBatchId,
                         'department' => $request->department,
                         'report_date' => $request->report_date,
                         'qty' => $item['qty'],
