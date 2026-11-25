@@ -4,7 +4,6 @@ use App\Models\Employee;
 use App\Models\Overtime;
 use App\Models\OvertimeEmployee;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
@@ -371,7 +370,7 @@ it('handles overtime amounts correctly in calculations', function () {
     ]);
 
     // Verify the duration is stored correctly
-    $pivot = OvertimeEmployee::find($overtime->pivot->id ?? \DB::table('overtime_employees')->where('overtime_id', $overtime->id)->first()->id ?? 0);
+    $pivot = OvertimeEmployee::find($overtime->pivot->id ?? DB::table('overtime_employees')->where('overtime_id', $overtime->id)->first()->id ?? 0);
 
     $overtimeEmployee = OvertimeEmployee::where('overtime_id', $overtime->id)
         ->where('employee_id', $this->employee->id)

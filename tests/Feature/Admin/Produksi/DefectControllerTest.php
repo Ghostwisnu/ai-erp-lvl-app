@@ -5,7 +5,6 @@ use App\Models\DefectCategory;
 use App\Models\ProductionDefect;
 use App\Models\Spk;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;

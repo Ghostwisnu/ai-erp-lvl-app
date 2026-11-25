@@ -5,7 +5,6 @@ use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\PayrollRun;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;

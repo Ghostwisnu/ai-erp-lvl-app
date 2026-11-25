@@ -28,7 +28,7 @@ it('has correct department list matching the production departments', function (
     // Old (buggy) departments in export: cutting, cementing, sewing, lasting, injection, finishing, packing
     // Missing: setting, stroble, gudang_semi
 
-    $export = new PpsExport();
+    $export = new PpsExport;
 
     // Use reflection to access the private constant
     $reflection = new ReflectionClass($export);
@@ -60,7 +60,7 @@ it('exports SPK data with correct headers', function () {
         'start_date' => '2026-11-01',
     ]);
 
-    $export = new PpsExport();
+    $export = new PpsExport;
     $headings = $export->headings();
 
     // Verify standard headers
@@ -89,7 +89,7 @@ it('exports SPK data with correct headers', function () {
 });
 
 it('exports empty collection when no SPKs exist', function () {
-    $export = new PpsExport();
+    $export = new PpsExport;
     $collection = $export->collection();
 
     expect($collection)->isEmpty();
@@ -141,7 +141,7 @@ it('exports data for all brands when no brand_id is provided', function () {
         'status' => 'create',
     ]);
 
-    $export = new PpsExport();
+    $export = new PpsExport;
     $collection = $export->collection();
 
     expect($collection)->toHaveCount(2);

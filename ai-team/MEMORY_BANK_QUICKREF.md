@@ -52,23 +52,23 @@ project-root/
 
 ## Auto-Detected Fields
 
-| Field | Source |
-|-------|--------|
+| Field                                | Source                                            |
+| ------------------------------------ | ------------------------------------------------- |
 | Stack (language, framework, ORM, DB) | package.json, composer.json, prisma/schema.prisma |
-| Key Files | src/ directory structure, Controllers/ |
-| Conventions | Based on framework (Laravel vs Express) |
-| Security | Framework-specific defaults |
-| Common Tasks | Framework-specific patterns |
+| Key Files                            | src/ directory structure, Controllers/            |
+| Conventions                          | Based on framework (Laravel vs Express)           |
+| Security                             | Framework-specific defaults                       |
+| Common Tasks                         | Framework-specific patterns                       |
 
 ---
 
 ## Token Savings
 
-| Before | After | Savings |
-|--------|-------|---------|
+| Before                         | After                       | Savings |
+| ------------------------------ | --------------------------- | ------- |
 | Read 20+ files: ~15,000 tokens | Load context: ~2,000 tokens | **87%** |
-| Re-explain architecture | Already in context | 100% |
-| Repeat conventions | Already in context | 100% |
+| Re-explain architecture        | Already in context          | 100%    |
+| Repeat conventions             | Already in context          | 100%    |
 
 ---
 
@@ -106,10 +106,10 @@ project-root/
 
 ## Status: ✅ Ready for All 3 Projects
 
-| Project | Memory Bank | Auto-Detected | Decisions |
-|---------|-------------|---------------|-----------|
-| zona-erp-app | ✅ | ✅ Express + Prisma | 2 ADRs |
-| ai_erp_lvl-app | ✅ | ✅ Laravel + Inertia | 2 ADRs |
-| skm-ekp-app | ✅ | ✅ Laravel + Rules | 2 ADRs |
+| Project        | Memory Bank | Auto-Detected        | Decisions |
+| -------------- | ----------- | -------------------- | --------- |
+| zona-erp-app   | ✅          | ✅ Express + Prisma  | 2 ADRs    |
+| ai_erp_lvl-app | ✅          | ✅ Laravel + Inertia | 2 ADRs    |
+| skm-ekp-app    | ✅          | ✅ Laravel + Rules   | 2 ADRs    |
 
 Run `node ai-team/scripts/init-memory-bank.cjs` anytime to re-detect.

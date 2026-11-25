@@ -1,11 +1,11 @@
 <?php
 
 use App\Models\Brand;
+use App\Models\ProductionDaily;
 use App\Models\Spk;
 use App\Models\SpkBatch;
 use App\Models\SpkBatchTrack;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
@@ -172,7 +172,7 @@ it('deletes all tracks when merging batches', function () {
 
     $this->post(route('produksi.spk-batches.merge', $this->spk));
 
-    expect(\App\Models\SpkBatchTrack::count())->toBe(0);
+    expect(SpkBatchTrack::count())->toBe(0);
 });
 
 // ============================================================
@@ -260,12 +260,12 @@ it('stores daily output for production departments', function () {
     $response->assertRedirect()
         ->assertSessionHas('success', 'Daily output massal berhasil disimpan.');
 
-    expect(\App\Models\ProductionDaily::where('department', 'cutting')->count())->toBe(1);
+    expect(ProductionDaily::where('department', 'cutting')->count())->toBe(1);
 });
 
 it('updates existing daily entry instead of duplicating', function () {
     // Create initial entry
-    \App\Models\ProductionDaily::create([
+    ProductionDaily::create([
         'spk_id' => $this->spk->id,
         'department' => 'cutting',
         'report_date' => '2026-11-15',
@@ -285,8 +285,8 @@ it('updates existing daily entry instead of duplicating', function () {
     ]);
 
     // Should increment instead of create new
-    expect(\App\Models\ProductionDaily::where('department', 'cutting')->count())->toBe(1)
-        ->and(\App\Models\ProductionDaily::first()->qty)->toBe(150);
+    expect(ProductionDaily::where('department', 'cutting')->count())->toBe(1)
+        ->and(ProductionDaily::first()->qty)->toBe(150);
 });
 
 it('validates department against approved list when storing daily', function () {
