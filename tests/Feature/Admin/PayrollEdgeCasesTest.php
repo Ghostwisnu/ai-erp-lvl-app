@@ -114,7 +114,7 @@ it('caps absence deduction at basic salary', function () {
     // Create exactly the number of non-weekend days in the period
     $startDate = Carbon::parse('2026-10-26');
     $endDate = Carbon::parse('2026-11-25');
-    
+
     $currentDate = $startDate->copy();
     while ($currentDate->lte($endDate)) {
         if (! $currentDate->isWeekend()) {

@@ -119,6 +119,7 @@ class EmployeeController extends BaseAdminController
         $validRows = collect($previewData)->filter(fn ($data) => $data['is_valid'])->count();
         if ($validRows === 0) {
             session()->forget('import_employees_preview');
+
             return redirect()->route('admin.employees.import-confirm')
                 ->with('error', 'Tidak ada data yang valid untuk diimport.');
         }
