@@ -98,13 +98,21 @@ it('splits SPK into multiple batches based on size', function () {
 });
 
 it('validates split batch sizes match total SPK size', function () {
-    // Total M = 100, but we're only allocating 60 in batch 1
+    // Total M = 100, but we're only allocating 60 in batch 1 + 40 in batch 2 = 100
+    // But we're only checking M in batch 1 = 60, leaving L unallocated -> should fail
     $response = $this->post(route('produksi.spk-batches.split', $this->spk), [
         'batches' => [
             [
                 'batch_code' => 'BATCH-001',
                 'sizes' => [
                     ['size_name' => 'M', 'qty' => 60],
+                ],
+            ],
+            [
+                'batch_code' => 'BATCH-002',
+                'sizes' => [
+                    ['size_name' => 'M', 'qty' => 50], // 60+50=110, but M total is 100 -> should fail
+                    ['size_name' => 'L', 'qty' => 30], // L total should be 50, but we have 30
                 ],
             ],
         ],
@@ -126,7 +134,7 @@ it('requires at least 2 batches to split', function () {
         ],
     ]);
 
-    // Should fail validation
+    // Should fail validation - only 1 batch provided but min:2 required
     expect($response->status())->toBeIn([302, 422, 403]);
 });
 
@@ -135,19 +143,26 @@ it('requires at least 2 batches to split', function () {
 // ============================================================
 
 it('merges all batches back into main SPK', function () {
-    // First create some batches
+    // First create some batches - need at least 2 for split validation
     $this->post(route('produksi.spk-batches.split', $this->spk), [
         'batches' => [
             [
                 'batch_code' => 'BATCH-001',
                 'sizes' => [
-                    ['size_name' => 'M', 'qty' => 100],
+                    ['size_name' => 'M', 'qty' => 60],
+                ],
+            ],
+            [
+                'batch_code' => 'BATCH-002',
+                'sizes' => [
+                    ['size_name' => 'M', 'qty' => 40],
+                    ['size_name' => 'L', 'qty' => 50],
                 ],
             ],
         ],
     ]);
 
-    expect($this->spk->fresh()->batches)->toHaveCount(1);
+    expect($this->spk->fresh()->batches)->toHaveCount(2);
 
     $response = $this->post(route('produksi.spk-batches.merge', $this->spk));
 
