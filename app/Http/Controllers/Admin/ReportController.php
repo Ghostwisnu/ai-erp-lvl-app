@@ -218,7 +218,7 @@ class ReportController extends BaseAdminController
             foreach ($overtimes as $ot) {
                 $empOvertime = $ot->employees->firstWhere('id', $emp->id);
                 if ($empOvertime) {
-                    $overtimeMap[$ot->date] = (float) data_get($empOvertime, 'pivot.duration');
+                    $overtimeMap[$ot->date->format('Y-m-d')] = (float) data_get($empOvertime, 'pivot.duration');
                 }
             }
 
