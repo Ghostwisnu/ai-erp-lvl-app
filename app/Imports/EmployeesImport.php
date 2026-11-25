@@ -17,6 +17,20 @@ class EmployeesImport implements ToCollection, WithHeadingRow
     /** @param Collection<int, array<string, mixed>> $rows */
     public function collection(Collection $rows): void
     {
+        // First pass: count occurrences of each employee code (case-insensitive)
+        $codeCounts = [];
+        foreach ($rows as $row) {
+            $employeeCode = trim((string) ($row['kode_karyawan'] ?? ''));
+            if ($employeeCode !== '') {
+                $lowerCode = strtolower($employeeCode);
+                if (!isset($codeCounts[$lowerCode])) {
+                    $codeCounts[$lowerCode] = 0;
+                }
+                $codeCounts[$lowerCode]++;
+            }
+        }
+
+        // Second pass: process rows and mark all duplicates as invalid
         $seenCodes = [];
 
         foreach ($rows as $index => $row) {
@@ -36,14 +50,11 @@ class EmployeesImport implements ToCollection, WithHeadingRow
 
             if ($employeeCode === '') {
                 $errors[] = 'Kode karyawan wajib diisi.';
-            } elseif (isset($seenCodes[$employeeCode])) {
+            } elseif (isset($codeCounts[strtolower($employeeCode)]) && $codeCounts[strtolower($employeeCode)] > 1) {
+                // All occurrences of a duplicate code are flagged
                 $errors[] = 'Kode karyawan duplikat di dalam file.';
-            } elseif (Employee::where('employee_code', $employeeCode)->exists()) {
+            } elseif (Employee::whereRaw('LOWER(employee_code) = ?', [strtolower($employeeCode)])->exists()) {
                 $errors[] = 'Kode karyawan sudah terdaftar.';
-            }
-
-            if ($employeeCode !== '') {
-                $seenCodes[$employeeCode] = true;
             }
 
             if (! $joinDate) {

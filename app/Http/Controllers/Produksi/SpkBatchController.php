@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Produksi;
 
 use App\Exports\PpsExport;
 use App\Http\Controllers\Admin\BaseAdminController;
+use CarbonCarbon;
 use App\Models\Brand;
 use App\Models\ProductionDaily;
 use App\Models\Spk;
@@ -89,8 +90,11 @@ class SpkBatchController extends BaseAdminController
             'start_date' => 'required|date',
         ]);
 
-        DB::transaction(function () use ($batch, $request) {
-            $batch->tracks()->whereNull('end_date')->update(['end_date' => now()]);
+        $startDate = Carbon::parse($request->start_date);
+        $endDate = $startDate->copy()->subDay();
+
+        DB::transaction(function () use ($batch, $startDate, $endDate, $request) {
+            $batch->tracks()->whereNull('end_date')->update(['end_date' => $endDate]);
             $track = $batch->tracks()->create([
                 'department' => $request->department,
                 'start_date' => $request->start_date,

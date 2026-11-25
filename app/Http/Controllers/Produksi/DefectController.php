@@ -28,9 +28,11 @@ class DefectController extends BaseAdminController
         $activeSpks = Spk::with('brand')->where('status', 'active')->get();
 
         // Ambil Kategori Defect sesuai Brand dari SPK yang dipilih
-        $defectCategories = [];
+        // Jika tidak ada SPK dipilih, tampilkan semua defect categories
         if ($selectedSpk) {
             $defectCategories = DefectCategory::where('brand_id', $selectedSpk->brand_id)->get();
+        } else {
+            $defectCategories = DefectCategory::all();
         }
 
         // Ambil Data Defect yang sudah diinput hari ini

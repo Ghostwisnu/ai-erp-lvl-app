@@ -100,6 +100,12 @@ class EmployeeController extends BaseAdminController
             return redirect()->route('admin.employees.import-form')->with('error', 'Tidak ada data untuk dipreview.');
         }
 
+        // Check if there are any valid rows to import
+        $hasValidRows = collect($previewData)->contains('is_valid', true);
+        if (! $hasValidRows) {
+            return redirect()->route('admin.employees.import-confirm')->with('error', 'Tidak ada data valid untuk diimport.');
+        }
+
         return $this->renderAdminPage('Admin/Employees/ImportPreview', [
             'previewData' => $previewData,
         ]);
@@ -113,6 +119,12 @@ class EmployeeController extends BaseAdminController
 
         if (empty($previewData)) {
             return redirect()->route('admin.employees.import-form')->with('error', 'Sesi data preview habis.');
+        }
+
+        // Check if there are any valid rows to import
+        $hasValidRows = collect($previewData)->contains('is_valid', true);
+        if (! $hasValidRows) {
+            return redirect()->route('admin.employees.import-confirm')->with('error', 'Tidak ada data valid untuk diimport.');
         }
 
         DB::transaction(function () use ($previewData) {

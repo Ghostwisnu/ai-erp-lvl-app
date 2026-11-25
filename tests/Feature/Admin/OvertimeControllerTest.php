@@ -327,7 +327,7 @@ it('shows daily schedule for a specific date', function () {
         'pic' => 'Admin',
     ]);
 
-    $response = $this->get(route('overtimes.daily', [
+    $response = $this->get(route('admin.overtimes.daily', [
         'date' => '2026-11-15',
     ]));
 

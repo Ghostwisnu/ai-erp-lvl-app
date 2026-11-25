@@ -61,6 +61,9 @@ it('detects existing employee code in database', function () {
     // Create existing employee
     Employee::create([
         'employee_code' => 'EMP-200',
+        'gender' => 'L',
+        'birth_place' => 'Bandung',
+        'birth_date' => '1990-01-01',
         'full_name' => 'Existing Employee',
         'department' => 'IT',
         'position' => 'Staff',

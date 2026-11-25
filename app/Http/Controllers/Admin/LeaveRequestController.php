@@ -2,150 +2,135 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Attendance;
-use App\Models\Employee;
 use App\Models\LeaveRequest;
 use App\Models\PayrollRun;
 use Carbon\Carbon;
-use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Symfony\Component\HttpFoundation\Response;
 
-class LeaveRequestController extends BaseAdminController
+class LeaveRequestController extends Controller
 {
-    /** @return Responsable|Response */
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
-        // Ambil semua pengajuan izin beserta data karyawan
-        $leaveRequests = LeaveRequest::with('employee')->orderBy('created_at', 'desc')->paginate(10);
+        $leaveRequests = LeaveRequest::with(['employee.user', 'employee.department'])
+            ->filter(request(['search', 'status']))
+            ->latest()
+            ->paginate(10)
+            ->appends(request()->query());
 
         return $this->renderAdminPage('Admin/LeaveRequests/Index', [
             'leaveRequests' => $leaveRequests,
         ]);
     }
 
-    /** @return Responsable|Response */
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
-        // Ambil semua karyawan untuk dropdown
-        $employees = Employee::orderBy('full_name')->get();
-
-        return $this->renderAdminPage('Admin/LeaveRequests/Create', [
-            'employees' => $employees,
-        ]);
+        return $this->renderAdminPage('Admin/LeaveRequests/Create');
     }
 
-    /** @return Responsable|Response */
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'type' => 'required|in:sakit,cuti,izin_setengah_hari',
+            'type' => 'required|in:cuti,sick,izin_setengah_hari',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'start_time' => 'nullable|date_format:H:i',
-            'end_time' => 'nullable|date_format:H:i',
-            'reason' => 'required|string',
-            'attachment' => 'nullable|file|mimes:pdf,jpg,png|max:2048', // Maks 2MB
+            'reason' => 'nullable|string|max:1000',
+            'attachment_path' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
         ]);
 
-        if ($request->hasFile('attachment')) {
-            $validated['attachment_path'] = $request->file('attachment')->store('leave_attachments', 'public');
+        if ($request->hasFile('attachment_path')) {
+            $validated['attachment_path'] = $request->file('attachment_path')->store('leave-attachments', 'public');
         }
 
-        // Set status default pending
-        $validated['status'] = 'pending';
-
-        LeaveRequest::create($validated);
+        LeaveRequest::create($validated + [
+            'employee_id' => Auth::user()->employee->id,
+        ]);
 
         return redirect()->route('admin.leave-requests.index')
-            ->with('success', 'Pengajuan izin berhasil dibuat.');
+            ->with('success', 'Permohonan izin berhasil diajukan.');
     }
 
-    /** @return Responsable|Response */
+    /**
+     * Display the specified resource.
+     */
     public function show(LeaveRequest $leaveRequest)
     {
         return $this->renderAdminPage('Admin/LeaveRequests/Show', [
-            'leaveRequest' => $leaveRequest->load('employee', 'approver'),
+            'leaveRequest' => $leaveRequest->load('employee.user'),
         ]);
     }
 
-    /** @return Responsable|Response */
+    /**
+     * Show the form for editing the specified resource.
+     */
     public function edit(LeaveRequest $leaveRequest)
     {
-        $employees = Employee::orderBy('full_name')->get();
+        abort_unless($leaveRequest->status === 'pending', 403);
 
         return $this->renderAdminPage('Admin/LeaveRequests/Edit', [
-            'leaveRequest' => $leaveRequest,
-            'employees' => $employees,
+            'leaveRequest' => $leaveRequest->load('employee.user'),
         ]);
     }
 
-    /** @return Responsable|Response */
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(Request $request, LeaveRequest $leaveRequest)
     {
         $validated = $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'type' => 'required|in:sakit,cuti,izin_setengah_hari',
+            'type' => 'required|in:cuti,sick,izin_setengah_hari',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'start_time' => 'nullable|date_format:H:i',
-            'end_time' => 'nullable|date_format:H:i',
-            'reason' => 'required|string',
-            'attachment' => 'nullable|file|mimes:pdf,jpg,png|max:2048',
+            'reason' => 'nullable|string|max:1000',
         ]);
-
-        if ($request->hasFile('attachment')) {
-            // Hapus file lama jika ada
-            if ($leaveRequest->attachment_path) {
-                Storage::disk('public')->delete($leaveRequest->attachment_path);
-            }
-            $validated['attachment_path'] = $request->file('attachment')->store('leave_attachments', 'public');
-        }
 
         $leaveRequest->update($validated);
 
         return redirect()->route('admin.leave-requests.index')
-            ->with('success', 'Pengajuan izin berhasil diupdate.');
+            ->with('success', 'Permohonan izin berhasil diperbarui.');
     }
 
-    /** @return Responsable|Response */
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(LeaveRequest $leaveRequest)
     {
-        $attachmentPath = DB::transaction(function () use ($leaveRequest) {
-            $lockedRequest = LeaveRequest::query()
-                ->lockForUpdate()
-                ->findOrFail($leaveRequest->id);
+        $lockedRequest = LeaveRequest::query()
+            ->lockForUpdate()
+            ->findOrFail($leaveRequest->id);
 
-            abort_unless(
-                $lockedRequest->status !== 'approved',
-                409,
-                'Pengajuan izin yang sudah disetujui tidak dapat dihapus.',
-            );
+        if ($lockedRequest->status === 'approved') {
+            return response('Pengajuan izin yang sudah disetujui tidak dapat dihapus.', 409);
+        }
 
-            $hasSynchronizedAttendance = Attendance::query()
-                ->where('employee_id', $lockedRequest->employee_id)
-                ->whereBetween('date', [
-                    $lockedRequest->start_date,
-                    $lockedRequest->end_date ?? $lockedRequest->start_date,
-                ])
-                ->where('notes', 'Izin: '.$lockedRequest->reason)
-                ->exists();
+        $hasSynchronizedAttendance = Attendance::query()
+            ->where('employee_id', $lockedRequest->employee_id)
+            ->whereBetween('date', [
+                $lockedRequest->start_date,
+                $lockedRequest->end_date ?? $lockedRequest->start_date,
+            ])
+            ->where('notes', 'Izin: '.$lockedRequest->reason)
+            ->exists();
 
-            abort_unless(
-                ! $hasSynchronizedAttendance,
-                409,
-                'Pengajuan izin yang pernah disetujui dan tersinkron ke absensi tidak dapat dihapus.',
-            );
+        if ($hasSynchronizedAttendance) {
+            return response('Pengajuan izin yang pernah disetujui dan tersinkron ke absensi tidak dapat dihapus.', 409);
+        }
 
-            $path = $lockedRequest->attachment_path;
-            $lockedRequest->delete();
-
-            return $path;
-        });
+        $attachmentPath = $lockedRequest->attachment_path;
+        $lockedRequest->delete();
 
         if ($attachmentPath) {
             Storage::disk('public')->delete($attachmentPath);
@@ -153,59 +138,6 @@ class LeaveRequestController extends BaseAdminController
 
         return redirect()->route('admin.leave-requests.index')
             ->with('success', 'Pengajuan izin berhasil dihapus.');
-    }
-
-    /** @return Responsable|Response */
-    public function cancel(Request $request, LeaveRequest $leaveRequest)
-    {
-        $validated = $request->validate([
-            'cancel_reason' => 'required|string|max:1000',
-        ]);
-
-        DB::transaction(function () use ($leaveRequest, $validated) {
-            $lockedRequest = LeaveRequest::query()
-                ->lockForUpdate()
-                ->findOrFail($leaveRequest->id);
-
-            abort_unless(
-                $lockedRequest->status === 'approved',
-                409,
-                'Hanya pengajuan izin yang sudah disetujui yang dapat dibatalkan.',
-            );
-
-            $startDate = Carbon::parse($lockedRequest->start_date);
-            $endDate = $lockedRequest->end_date
-                ? Carbon::parse($lockedRequest->end_date)
-                : $startDate->copy();
-
-            $payrollLocked = PayrollRun::query()
-                ->whereIn('status', ['approved', 'paid'])
-                ->whereDate('period_start', '<=', $endDate->toDateString())
-                ->whereDate('period_end', '>=', $startDate->toDateString())
-                ->exists();
-
-            abort_if(
-                $payrollLocked,
-                409,
-                'Pengajuan izin tidak dapat dibatalkan karena penggajian periode tersebut sudah disetujui/dibayar.',
-            );
-
-            // Hapus absensi yang dibuat otomatis saat izin disetujui.
-            Attendance::query()
-                ->where('employee_id', $lockedRequest->employee_id)
-                ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
-                ->where('notes', 'Izin: '.$lockedRequest->reason)
-                ->delete();
-
-            $lockedRequest->update([
-                'status' => 'cancelled',
-                'cancelled_by' => Auth::id(),
-                'cancelled_at' => now(),
-                'cancel_reason' => $validated['cancel_reason'],
-            ]);
-        });
-
-        return redirect()->back()->with('success', 'Pengajuan izin berhasil dibatalkan.');
     }
 
     // Method Tambahan untuk Approve/Reject
@@ -254,14 +186,51 @@ class LeaveRequestController extends BaseAdminController
                     ['employee_id' => $lockedRequest->employee_id, 'date' => $date->toDateString()],
                     [
                         'status' => $attendanceStatus,
-                        'check_in' => $lockedRequest->start_time,
-                        'check_out' => $lockedRequest->end_time,
                         'notes' => 'Izin: '.$lockedRequest->reason,
                     ]
                 );
             }
         });
 
-        return redirect()->back()->with('success', 'Status pengajuan berhasil diperbarui.');
+        return redirect()->route('admin.leave-requests.index')
+            ->with('success', 'Permohonan izin berhasil disetujui.');
     }
-}
+
+    /**
+     * Cancel a leave request.
+     */
+    /** @return Responsable|Response */
+    public function cancel(Request $request, LeaveRequest $leaveRequest)
+    {
+        $validated = $request->validate([
+            'cancel_reason' => 'required|string|max:1000',
+        ]);
+
+        $lockedRequest = LeaveRequest::query()
+            ->lockForUpdate()
+            ->findOrFail($leaveRequest->id);
+
+        if ($lockedRequest->status !== 'approved') {
+            return response('Hanya pengajuan izin yang sudah disetujui yang dapat dibatalkan.', 409);
+        }
+
+        $startDate = Carbon::parse($lockedRequest->start_date);
+        $endDate = $lockedRequest->end_date
+            ? Carbon::parse($lockedRequest->end_date)
+            : $startDate->copy();
+
+        $payrollLocked = PayrollRun::query()
+            ->whereIn('status', ['approved', 'paid'])
+            ->whereDate('period_start', '<=', $endDate->toDateString())
+            ->whereDate('period_end', '>=', $startDate->toDateString())
+            ->exists();
+
+        if ($payrollLocked) {
+            return response('Pengajuan izin tidak dapat dibatalkan karena penggajian periode tersebut sudah disetujui/dibayar.', 409);
+        }
+
+        DB::transaction(function () use ($lockedRequest, $validated, $startDate, $endDate) {
+            // Hapus absensi yang dibuat otomatis saat izin disetujui.
+            Attendance::query()
+                ->where('employee_id', $lockedRequest->employee_id)
+                ->whereBetween('date', [$startDate->
