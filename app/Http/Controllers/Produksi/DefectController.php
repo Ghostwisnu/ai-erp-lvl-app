@@ -45,11 +45,11 @@ class DefectController extends BaseAdminController
 
         // Ambil Data Defect berdasarkan SPK yang dipilih (bisa data hari ini atau sebelumnya)
         $defectsQuery = ProductionDefect::with(['spk', 'defectCategory']);
-        
+
         if ($selectedSpkId > 0) {
             $defectsQuery->where('spk_id', $selectedSpkId);
         }
-        
+
         $dailyDefects = $defectsQuery
             ->where('department', $department)
             ->get();
