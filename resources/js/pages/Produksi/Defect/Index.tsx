@@ -13,8 +13,8 @@ export default function Index({
     const categoriesArray: any[] = Array.isArray(defectCategories?.data)
         ? defectCategories.data
         : Array.isArray(defectCategories)
-            ? defectCategories
-            : [];
+          ? defectCategories
+          : [];
     const [selectedSpkId, setSelectedSpkId] = useState(selectedSpk?.id || '');
 
     // Form untuk tambah defect
