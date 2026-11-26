@@ -181,7 +181,7 @@ it('shows defects for different departments', function () {
             ->where('department', 'warehouse'));
 });
 
-it('shows today\'s defects by default', function () {
+it('shows all defects for selected SPK', function () {
     ProductionDefect::create([
         'spk_id' => $this->spk->id,
         'defect_category_id' => $this->defectCategory->id,
@@ -192,8 +192,8 @@ it('shows today\'s defects by default', function () {
 
     $response = $this->get(route('produksi.defects.index'));
 
-    // Should show today's defects
+    // Should show defects for the SPK
     $response->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->has('todayDefects', 1));
+            ->has('dailyDefects', 1));
 });
