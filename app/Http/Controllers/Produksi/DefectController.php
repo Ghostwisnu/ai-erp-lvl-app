@@ -6,7 +6,6 @@ use App\Http\Controllers\Admin\BaseAdminController;
 use App\Models\DefectCategory;
 use App\Models\ProductionDefect;
 use App\Models\Spk;
-use Carbon\Carbon;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
