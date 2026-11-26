@@ -47,8 +47,14 @@ class DefectController extends BaseAdminController
         // Ambil Data Defect yang sudah diinput hari ini
         $todayDefects = ProductionDefect::with(['spk', 'defectCategory'])
             ->whereDate('created_at', Carbon::today())
-            ->where('department', $department)
-            ->get();
+            ->where('department', $department);
+        
+        // Filter by selected SPK if provided
+        if ($selectedSpkId > 0) {
+            $todayDefects->where('spk_id', $selectedSpkId);
+        }
+        
+        $todayDefects = $todayDefects->get();
 
         return $this->renderAdminPage('Produksi/Defect/Index', [
             'department' => $department,
