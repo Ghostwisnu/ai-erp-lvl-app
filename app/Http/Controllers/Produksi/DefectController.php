@@ -50,7 +50,7 @@ class DefectController extends BaseAdminController
             $defectsQuery->where('spk_id', $selectedSpkId);
         }
 
-        $dailyDefects = $defectsQuery
+        $todayDefects = $defectsQuery
             ->where('department', $department)
             ->get();
 
@@ -59,7 +59,7 @@ class DefectController extends BaseAdminController
             'activeSpks' => $activeSpks,
             'selectedSpk' => $selectedSpk,
             'defectCategories' => ['data' => $defectCategories],
-            'dailyDefects' => $dailyDefects,
+            'todayDefects' => $todayDefects,
         ]);
     }
 

@@ -195,5 +195,5 @@ it('shows all defects for selected SPK', function () {
     // Should show defects for the SPK
     $response->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->has('dailyDefects', 1));
+            ->has('todayDefects', 1));
 });
