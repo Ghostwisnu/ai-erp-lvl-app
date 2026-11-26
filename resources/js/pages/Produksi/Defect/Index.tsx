@@ -13,12 +13,6 @@ export default function Index({
     const categoriesArray: any[] = Array.isArray(defectCategories?.data)
         ? defectCategories.data
         : Array.isArray(defectCategories)
-          ? defectCategories
-          : [];
-    // Defensive: ensure defectCategories is always an array
-    const categoriesArray = Array.isArray(defectCategories?.data)
-        ? defectCategories.data
-        : Array.isArray(defectCategories)
             ? defectCategories
             : [];
     const [selectedSpkId, setSelectedSpkId] = useState(selectedSpk?.id || '');
@@ -181,10 +175,10 @@ export default function Index({
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {defectCategories.length > 0 ? (
-                                            defectCategories.map((cat: any) => {
+                                        {categoriesArray.length > 0 ? (
+                                            categoriesArray.map((cat: any) => {
                                                 // Hitung defect untuk kategori ini di SPK ini
-                                                const qtyDefect = todayDefects
+                                                const qtyDefect = safeDefects
                                                     .filter(
                                                         (d: any) =>
                                                             d.spk_id ===
