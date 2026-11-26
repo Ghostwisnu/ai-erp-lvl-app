@@ -8,6 +8,19 @@ export default function Index({
     defectCategories,
     todayDefects,
 }: any) {
+    // Defensive: ensure both are arrays to prevent .filter() crash
+    const safeDefects: any[] = Array.isArray(todayDefects) ? todayDefects : [];
+    const categoriesArray: any[] = Array.isArray(defectCategories?.data)
+        ? defectCategories.data
+        : Array.isArray(defectCategories)
+          ? defectCategories
+          : [];
+    // Defensive: ensure defectCategories is always an array
+    const categoriesArray = Array.isArray(defectCategories?.data)
+        ? defectCategories.data
+        : Array.isArray(defectCategories)
+            ? defectCategories
+            : [];
     const [selectedSpkId, setSelectedSpkId] = useState(selectedSpk?.id || '');
 
     // Form untuk tambah defect
@@ -35,10 +48,10 @@ export default function Index({
     };
 
     // Hitung total defect PO ini
-    const totalDefectPO = todayDefects
+    const totalDefectPO = safeDefects
         .filter((d: any) => d.spk_id === selectedSpkId)
         .reduce((sum: number, d: any) => sum + d.qty, 0);
-    const totalDefectAll = todayDefects.reduce(
+    const totalDefectAll = safeDefects.reduce(
         (sum: number, d: any) => sum + d.qty,
         0,
     );
