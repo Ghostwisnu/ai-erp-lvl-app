@@ -44,9 +44,14 @@ class DefectController extends BaseAdminController
             'brand_id' => $category->brand_id,
         ]);
 
-        // Ambil Data Defect yang sudah diinput hari ini
-        $todayDefects = ProductionDefect::with(['spk', 'defectCategory'])
-            ->whereDate('created_at', Carbon::today())
+        // Ambil Data Defect berdasarkan SPK yang dipilih (bisa data hari ini atau sebelumnya)
+        $defectsQuery = ProductionDefect::with(['spk', 'defectCategory']);
+        
+        if ($selectedSpkId > 0) {
+            $defectsQuery->where('spk_id', $selectedSpkId);
+        }
+        
+        $dailyDefects = $defectsQuery
             ->where('department', $department)
             ->get();
 
@@ -55,7 +60,7 @@ class DefectController extends BaseAdminController
             'activeSpks' => $activeSpks,
             'selectedSpk' => $selectedSpk,
             'defectCategories' => ['data' => $defectCategories],
-            'todayDefects' => $todayDefects,
+            'dailyDefects' => $dailyDefects,
         ]);
     }
 
