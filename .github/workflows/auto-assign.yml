@@ -3,7 +3,7 @@ name: Auto Assign
 on:
   issues:
     types: [opened, reopened]
-  pull_request:
+  pull_requests:
     types: [opened, reopened]
 
 permissions:
